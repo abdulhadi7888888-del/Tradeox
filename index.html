@@ -645,7 +645,12 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="pw-row"><span>JazzCash / EasyPaisa</span><span>0324-4996576</span></div>
     <div class="pw-row"><span>Account Name</span><span>Qasim Raza</span></div>
   </div>
-  <div class="pw-sub" style="margin-bottom:16px;">Payment karne ke baad screenshot bhejein, aapko activation code milega. Code neeche daal kar activate karein.</div>
+  <div class="pw-sub" style="margin-bottom:16px;">Payment karne ke baad screenshot WhatsApp par bhejein, aapko activation code milega. Code neeche daal kar activate karein.</div>
+
+  <a id="whatsappPayBtn" href="https://wa.me/923134586476?text=Assalam-o-Alaikum%2C%20maine%20Tradeox%20subscription%20ka%20payment%20kar%20diya%20hai%2C%20screenshot%20attach%20hai." target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366; color:#08210F; font-weight:800; padding:13px; border-radius:10px; font-size:14px; text-decoration:none; margin-bottom:16px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0012.04 2zm0 1.67c2.16 0 4.19.84 5.71 2.37a8.07 8.07 0 012.38 5.72c0 4.46-3.63 8.09-8.1 8.09h-.01c-1.44 0-2.85-.38-4.08-1.1l-.29-.17-3.04.8.81-2.96-.19-.3a8.07 8.07 0 01-1.24-4.32c0-4.47 3.63-8.13 8.05-8.13z"/></svg>
+    Screenshot WhatsApp par bhejein (0313-4586476)
+  </a>
 
   <div class="pw-box">
     <input class="auth-input" id="activationCodeInput" type="text" placeholder="Activation code (e.g. TRX-XXXX-XXXX)" style="text-transform:uppercase; text-align:center; font-family:var(--mono); letter-spacing:.05em;">
@@ -680,6 +685,13 @@ document.addEventListener('DOMContentLoaded', function(){
     <h3>Users</h3>
     <div id="adminUsersList">
       <div class="empty-state">Loading users…</div>
+    </div>
+  </div>
+
+  <div class="admin-panel-box">
+    <h3>📊 Sab Users Ki Analysis (Dashboard)</h3>
+    <div id="adminAnalysisList">
+      <div class="empty-state">Loading analysis…</div>
     </div>
   </div>
 </div>
@@ -1218,6 +1230,7 @@ document.addEventListener('DOMContentLoaded', function(){
     renderMetrics({trendLabel, trendDir, rsiNow, rsiZone, rsiDir, momPct, momDir, relVol, volLabel, support, resistance, price, atrPct, volaLabel});
     renderPlan(direction, entry, sl, tp1, tp2, rr, aligned, decision, rsiExtreme, score);
     pushHistory({symbol, decision, price, score, t: Date.now()});
+    logAnalysisToAdmin({symbol, decision, price, score});
 
     // cache for OS-style home screen widget
     const prevClose = candles[candles.length-2]?.c ?? price;
@@ -1558,6 +1571,22 @@ document.addEventListener('DOMContentLoaded', function(){
     }catch(e){ /* silent fail, retry next poll */ }
   }
 
+  // ---------- Log analysis to admin dashboard (Firestore) ----------
+  function logAnalysisToAdmin(data){
+    try{
+      if(!window.NG || !window.NG.db || !window.NG.user) return;
+      window.NG.db.collection('analyses').add({
+        uid: window.NG.user.uid,
+        email: window.NG.user.email || 'unknown',
+        symbol: data.symbol,
+        decision: data.decision,
+        price: data.price,
+        score: data.score,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(()=>{});
+    }catch(e){ /* silent fail */ }
+  }
+
   // ---------- Signal History ----------
   function getHistory(){ return loadJSON('tradeox_history', []); }
   function pushHistory(entry){
@@ -1695,6 +1724,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const adminCodeDuration = document.getElementById('adminCodeDuration');
   const adminCodesList = document.getElementById('adminCodesList');
   const adminUsersList = document.getElementById('adminUsersList');
+  const adminAnalysisList = document.getElementById('adminAnalysisList');
 
   let isSignupMode = false;
 
@@ -1891,11 +1921,34 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
+  async function loadAdminAnalysis(){
+    adminAnalysisList.innerHTML = '<div class="empty-state">Loading…</div>';
+    try{
+      const snap = await db.collection('analyses').orderBy('createdAt','desc').limit(100).get();
+      if(snap.empty){ adminAnalysisList.innerHTML = '<div class="empty-state">Abhi tak koi analysis nahi hui.</div>'; return; }
+      adminAnalysisList.innerHTML = snap.docs.map(d=>{
+        const a = d.data();
+        const badge = a.decision==='LONG' ? '🟢' : a.decision==='SHORT' ? '🔴' : '🟡';
+        const time = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : '—';
+        return `<div class="admin-user-item" style="flex-direction:column; align-items:flex-start; gap:4px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span class="au-email">${badge} ${a.symbol} <span style="color:var(--sub); font-weight:400;">${a.decision}</span></span>
+            <span style="color:var(--sub); font-family:var(--mono); font-size:11px;">${time}</span>
+          </div>
+          <div style="font-family:var(--mono); font-size:11px; color:var(--sub);">${a.email || 'unknown'} · price ${a.price} · score ${a.score}</div>
+        </div>`;
+      }).join('');
+    }catch(e){
+      adminAnalysisList.innerHTML = '<div class="empty-state">Analysis load nahi ho saki.</div>';
+    }
+  }
+
   homeAdminApp.addEventListener('click', ()=>{
     homeScreen.classList.add('hidden');
     adminPanel.classList.add('show');
     loadAdminCodes();
     loadAdminUsers();
+    loadAdminAnalysis();
   });
   adminBackBtn.addEventListener('click', ()=>{
     adminPanel.classList.remove('show');
