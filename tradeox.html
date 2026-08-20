@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tradeox</title>
+<meta name="theme-color" content="#0B0F14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tradeox">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Tradeox — one-tap crypto market analysis, live TradingView charts, price alerts, watchlist aur signal history.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B0F14'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23E0A458' font-family='sans-serif' font-weight='800'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B0F14'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23E0A458' font-family='sans-serif' font-weight='800'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Tradeox","short_name":"Tradeox","start_url":"./","display":"standalone","background_color":"%230B0F14","theme_color":"%230B0F14","description":"One-tap crypto market analysis, live charts, alerts aur watchlist.","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%230B0F14\'/%3E%3Ctext x=\'50\' y=\'68\' font-size=\'58\' text-anchor=\'middle\' fill=\'%23E0A458\' font-family=\'sans-serif\' font-weight=\'800\'%3ET%3C/text%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"}]}'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F14; --panel:#121922; --panel-2:#161F2A; --line:#232E3B;
+    --text:#E8EDF2; --sub:#8A97A6; --gold:#E0A458;
+    --green:#3FB950; --red:#F85149; --yellow:#E8C547; --blue:#5B9DEE;
+    --bnb:#FCD535; --bnb-dim:#1E1D0F;
+    --mono:'IBM Plex Mono',monospace; --sans:'Manrope',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh;}
+  body{background-image:radial-gradient(circle at 10% 0%, rgba(224,164,88,0.07), transparent 40%), radial-gradient(circle at 95% 15%, rgba(63,185,80,0.05), transparent 35%);}
+  button,select{font:inherit; cursor:pointer;}
+
+  header{max-width:720px; margin:0 auto; padding:26px 18px 6px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 0 rgba(63,185,80,0.6); animation:pulse 1.8s infinite;}
+  .dot.off{background:var(--sub); animation:none; box-shadow:none;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,185,80,.55);}70%{box-shadow:0 0 0 9px rgba(63,185,80,0);}100%{box-shadow:0 0 0 0 rgba(63,185,80,0);}}
+  h1{font-size:22px; font-weight:800; letter-spacing:-0.02em;}
+  .sub{font-family:var(--mono); font-size:11.5px; color:var(--sub); margin-top:3px;}
+  .disclaimer{margin-top:14px; font-size:12px; color:var(--sub); border-left:2px solid var(--gold); padding:9px 12px; background:rgba(224,164,88,.05); border-radius:0 8px 8px 0; line-height:1.6;}
+
+  main{max-width:720px; margin:0 auto; padding:16px 18px 60px; display:grid; gap:14px;}
+
+  /* Step 1+2: pick coin, tap analyze */
+  .controls{display:grid; grid-template-columns:1.4fr 1fr auto; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px;}
+  .field-label{font-family:var(--mono); font-size:10.5px; color:var(--sub); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px;}
+  select{width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:12px 12px; border-radius:10px; font-family:var(--mono); font-size:14px; outline:none;}
+  select:focus{border-color:var(--gold);}
+  .analyze-btn{background:var(--gold); color:#1A1200; border:none; font-weight:800; padding:0 22px; border-radius:10px; font-size:14px; letter-spacing:.02em; white-space:nowrap;}
+  .analyze-btn:hover{filter:brightness(1.08);}
+  .analyze-btn:disabled{opacity:.6; cursor:default;}
+  .analyze-btn.loading{background:var(--panel-2); color:var(--sub); border:1px solid var(--line);}
+  @media(max-width:600px){.controls{grid-template-columns:1fr}}
+
+  /* Step 5: final result */
+  .signal-card{
+    border-radius:18px; padding:24px; border:1px solid var(--line); background:var(--panel);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+    transition:border-color .3s ease, background .3s ease;
+  }
+  .signal-card.long{border-color:var(--green); background:rgba(63,185,80,0.08);}
+  .signal-card.short{border-color:var(--red); background:rgba(248,81,73,0.08);}
+  .signal-card.wait{border-color:var(--yellow); background:rgba(232,197,71,0.06);}
+  .signal-card.idle{border-color:var(--line);}
+  .sig-left .sig-label{font-family:var(--mono); font-size:11px; color:var(--sub); letter-spacing:.08em; text-transform:uppercase;}
+  .sig-left .sig-value{font-size:34px; font-weight:800; margin-top:4px; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px;}
+  .sig-value.long{color:var(--green);}
+  .sig-value.short{color:var(--red);}
+  .sig-value.wait{color:var(--yellow);}
+  .sig-value.idle{color:var(--sub); font-size:20px; font-weight:600;}
+  .sig-reason{font-size:13px; color:var(--sub); margin-top:8px; max-width:420px; line-height:1.55;}
+  .sig-right{text-align:right; font-family:var(--mono);}
+  .sig-price{font-size:24px; font-weight:600;}
+  .sig-change{font-size:12.5px; margin-top:4px;}
+  .sig-change.up{color:var(--green);} .sig-change.down{color:var(--red);}
+  .sig-score{font-size:11px; color:var(--sub); margin-top:6px;}
+
+  /* Step 4: metrics grid */
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .panel h3{font-size:12px; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; font-family:var(--mono);}
+  .metrics-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  @media(max-width:480px){.metrics-grid{grid-template-columns:1fr}}
+  .metric{background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .metric .m-label{font-family:var(--mono); font-size:10.5px; color:var(--sub); text-transform:uppercase; letter-spacing:.05em;}
+  .metric .m-value{font-size:17px; font-weight:800; margin-top:5px;}
+  .metric .m-sub{font-size:11.5px; color:var(--sub); margin-top:3px; font-family:var(--mono);}
+  .m-value.up{color:var(--green);} .m-value.down{color:var(--red);} .m-value.flat{color:var(--yellow);}
+
+  /* Step 6: trade plan */
+  .plan-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  @media(max-width:480px){.plan-grid{grid-template-columns:1fr 1fr}}
+  .plan-item{background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:13px 14px;}
+  .plan-item .p-label{font-family:var(--mono); font-size:10.5px; color:var(--sub); text-transform:uppercase; letter-spacing:.05em;}
+  .plan-item .p-value{font-size:16px; font-weight:800; margin-top:5px; font-family:var(--mono);}
+  .plan-item.dir .p-value.long{color:var(--green);} .plan-item.dir .p-value.short{color:var(--red);} .plan-item.dir .p-value.wait{color:var(--yellow);}
+  .plan-item.sl .p-value{color:var(--red);}
+  .plan-item.tp .p-value{color:var(--green);}
+  .plan-reason{margin-top:12px; font-size:12.5px; color:var(--sub); line-height:1.6; border-top:1px solid var(--line); padding-top:12px;}
+  .plan-reason b{color:var(--text);}
+
+  /* Risk management */
+  .risk-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px;}
+  .risk-field label{font-family:var(--mono); font-size:10.5px; color:var(--sub); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:6px;}
+  .risk-field input{width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:11px; border-radius:10px; font-family:var(--mono); font-size:13px; outline:none;}
+  .risk-field input:focus{border-color:var(--gold);}
+  .risk-output{margin-top:14px; padding-top:14px; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px;}
+  .risk-out-item{background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .risk-out-item .p-label{font-family:var(--mono); font-size:10.5px; color:var(--sub); text-transform:uppercase; letter-spacing:.05em;}
+  .risk-out-item .p-value{font-size:15px; font-weight:800; margin-top:5px; font-family:var(--mono);}
+  .risk-note{margin-top:12px; font-size:12px; color:var(--sub); line-height:1.6;}
+
+  /* Score explainer */
+  .weights-list{display:flex; flex-direction:column; gap:9px;}
+  .weight-row{display:flex; align-items:center; gap:10px; font-size:12.5px;}
+  .weight-row .w-name{width:150px; flex-shrink:0; color:var(--text); font-weight:600;}
+  .weight-bar-track{flex:1; height:8px; background:var(--panel-2); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+  .weight-bar-fill{height:100%; background:var(--gold); border-radius:6px;}
+  .weight-row .w-pts{width:38px; text-align:right; font-family:var(--mono); color:var(--sub); flex-shrink:0;}
+  .weights-note{margin-top:12px; font-size:12px; color:var(--sub); line-height:1.7; border-top:1px solid var(--line); padding-top:12px;}
+  .weights-note code{background:var(--panel-2); padding:1px 6px; border-radius:5px; font-family:var(--mono); color:var(--gold);}
+
+  .empty-state{color:var(--sub); font-size:13px; text-align:center; padding:26px 10px; line-height:1.6;}
+
+  /* TradingView live chart */
+  .tv-wrap{border-radius:12px; overflow:hidden; border:1px solid var(--line); background:var(--panel-2);}
+  .tv-link{display:block; text-align:center; font-size:11px; color:var(--sub); margin-top:8px; font-family:var(--mono);}
+  .tv-link a{color:var(--gold); text-decoration:none;}
+
+  /* Trending coins */
+  .trend-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  @media(max-width:480px){.trend-grid{grid-template-columns:1fr}}
+  .trend-card{background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:13px 14px; cursor:pointer; transition:border-color .2s ease;}
+  .trend-card:hover{border-color:var(--gold);}
+  .trend-card .t-sym{font-family:var(--mono); font-weight:800; font-size:15px;}
+  .trend-card .t-chg{font-size:20px; font-weight:800; margin-top:4px;}
+  .trend-card .t-chg.up{color:var(--green);} .trend-card .t-chg.down{color:var(--red);}
+  .trend-card .t-sub{font-size:11px; color:var(--sub); margin-top:4px; font-family:var(--mono);}
+  .trend-refresh{font-family:var(--mono); font-size:11px; color:var(--sub); text-align:right; margin-top:10px;}
+  .trend-refresh button{background:none; border:1px solid var(--line); color:var(--sub); padding:5px 10px; border-radius:8px; font-size:11px; font-family:var(--mono);}
+  .trend-refresh button:hover{border-color:var(--gold); color:var(--gold);}
+
+  /* VIP badge */
+  .vip-badge{display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,var(--gold),#c9853d); color:#1A1200; font-family:var(--mono); font-size:10px; font-weight:800; padding:3px 8px; border-radius:20px; letter-spacing:.04em; margin-left:8px; vertical-align:middle;}
+
+  /* Watchlist */
+  .watch-bar{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+  .watch-bar::-webkit-scrollbar{height:4px;} .watch-bar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+  .watch-chip{flex-shrink:0; display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--line); border-radius:20px; padding:7px 12px; font-family:var(--mono); font-size:12px; cursor:pointer; white-space:nowrap;}
+  .watch-chip.active{border-color:var(--gold); color:var(--gold);}
+  .watch-chip .wc-star{cursor:pointer; color:var(--gold); font-size:13px;}
+  .star-btn{background:none; border:1px solid var(--line); color:var(--sub); border-radius:10px; padding:0 14px; font-size:16px; height:100%;}
+  .star-btn.active{color:var(--gold); border-color:var(--gold);}
+
+  /* Toggle row (auto-refresh) */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--sub);}
+  .switch{position:relative; width:40px; height:22px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .switch .slider{position:absolute; inset:0; background:var(--panel-2); border:1px solid var(--line); border-radius:20px; transition:.2s; cursor:pointer;}
+  .switch .slider:before{content:""; position:absolute; width:16px; height:16px; left:2px; top:2px; background:var(--sub); border-radius:50%; transition:.2s;}
+  .switch input:checked + .slider{background:rgba(224,164,88,.18); border-color:var(--gold);}
+  .switch input:checked + .slider:before{transform:translateX(18px); background:var(--gold);}
+
+  /* Price Alerts */
+  .alert-form{display:grid; grid-template-columns:1fr 1fr auto; gap:8px; margin-bottom:12px;}
+  @media(max-width:480px){.alert-form{grid-template-columns:1fr 1fr; }.alert-form button{grid-column:1/-1;}}
+  .alert-form input, .alert-form select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:10px; font-family:var(--mono); font-size:12.5px; outline:none;}
+  .alert-form button{background:var(--gold); color:#1A1200; border:none; font-weight:800; border-radius:10px; padding:0 14px; font-size:12.5px;}
+  .alert-list{display:flex; flex-direction:column; gap:8px;}
+  .alert-item{display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-family:var(--mono); font-size:12.5px;}
+  .alert-item .a-info b{color:var(--text);}
+  .alert-item button{background:none; border:none; color:var(--red); font-size:16px; padding:2px 6px;}
+  .alert-item.triggered{border-color:var(--green); background:rgba(63,185,80,.06);}
+
+  /* Signal history */
+  .history-list{display:flex; flex-direction:column; gap:7px;}
+  .history-item{display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-family:var(--mono); font-size:12px;}
+  .history-item .h-badge{font-size:14px;}
+  .history-item .h-sym{color:var(--text); font-weight:700;}
+  .history-item .h-price{color:var(--sub);}
+  .history-item .h-time{color:var(--sub); font-size:10.5px;}
+  .history-clear{font-family:var(--mono); font-size:11px; color:var(--sub); text-align:right; margin-top:10px;}
+  .history-clear button{background:none; border:1px solid var(--line); color:var(--sub); padding:5px 10px; border-radius:8px; font-size:11px; font-family:var(--mono);}
+  .history-clear button:hover{border-color:var(--red); color:var(--red);}
+
+  footer{max-width:720px; margin:0 auto; text-align:center; color:var(--sub); font-size:11px; padding:10px 18px 30px; font-family:var(--mono); line-height:1.7;}
+
+  /* ===== Lock Screen (Binance-style) ===== */
+  #lockScreen{
+    position:fixed; inset:0; z-index:9999; background:#0B0E11;
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:60px 24px 40px; text-align:center; transition:opacity .35s ease, visibility .35s ease;
+  }
+  #lockScreen.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .lock-top{display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:20px;}
+  .lock-logo{width:56px; height:56px; border-radius:16px; background:var(--bnb); display:flex; align-items:center; justify-content:center; font-family:var(--sans); font-weight:800; font-size:26px; color:#0B0E11; box-shadow:0 0 0 1px rgba(252,213,53,.25), 0 10px 30px rgba(252,213,53,.12);}
+  .lock-brand{font-family:var(--sans); font-weight:800; font-size:17px; color:#EAECEF; margin-top:12px; letter-spacing:.01em;}
+  .lock-sub{font-family:var(--mono); font-size:11.5px; color:#848E9C; margin-top:2px;}
+
+  .lock-mid{display:flex; flex-direction:column; align-items:center; gap:26px; width:100%; max-width:320px;}
+  .lock-prompt{font-family:var(--sans); font-size:14.5px; color:#EAECEF; font-weight:600;}
+  .lock-dots{display:flex; gap:16px;}
+  .lock-dot{width:13px; height:13px; border-radius:50%; border:1.5px solid #474D57; background:transparent; transition:background .12s ease, border-color .12s ease, transform .12s ease;}
+  .lock-dot.filled{background:var(--bnb); border-color:var(--bnb);}
+  .lock-dots.shake{animation:lockShake .4s ease;}
+  .lock-dots.err .lock-dot.filled{background:var(--red); border-color:var(--red);}
+  @keyframes lockShake{
+    10%,90%{transform:translateX(-3px);} 20%,80%{transform:translateX(5px);}
+    30%,50%,70%{transform:translateX(-9px);} 40%,60%{transform:translateX(9px);}
+  }
+  .lock-msg{font-family:var(--mono); font-size:11.5px; color:var(--red); min-height:16px;}
+
+  .lock-keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:100%; max-width:280px;}
+  .lock-key{aspect-ratio:1; border-radius:50%; background:transparent; border:none; color:#EAECEF; font-family:var(--sans); font-size:24px; font-weight:600; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;}
+  .lock-key:active{background:#1E2126;}
+  .lock-key.fn{color:#848E9C; font-size:19px;}
+  .lock-key.biometric{color:var(--bnb);}
+
+  .lock-bottom{font-family:var(--mono); font-size:11px; color:#5E6673;}
+  .lock-bottom button{background:none; border:none; color:var(--bnb); font-family:var(--mono); font-size:11px; text-decoration:underline; padding:0;}
+
+  /* ===== OS-style Home Screen ===== */
+  #homeScreen{
+    position:fixed; inset:0; z-index:9998; overflow-y:auto;
+    background:
+      radial-gradient(circle at 20% 8%, rgba(224,164,88,0.10), transparent 42%),
+      radial-gradient(circle at 85% 20%, rgba(63,185,80,0.08), transparent 38%),
+      linear-gradient(180deg, #0D1218 0%, #090C10 100%);
+    padding:22px 18px calc(96px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:22px;
+    transition:opacity .3s ease, visibility .3s ease;
+  }
+  #homeScreen.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .home-status{text-align:center; padding-top:6px;}
+  .home-time{font-family:var(--sans); font-weight:800; font-size:44px; color:var(--text); letter-spacing:-0.02em; line-height:1;}
+  .home-date{font-family:var(--mono); font-size:12px; color:var(--sub); margin-top:6px;}
+
+  .home-widget{display:flex; justify-content:space-between; align-items:center; background:rgba(18,25,34,.75); backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:18px; padding:16px 18px;}
+  .hw-sym{font-family:var(--mono); font-weight:700; font-size:14px; color:var(--text);}
+  .hw-sub{font-size:11px; color:var(--sub); margin-top:3px;}
+  .hw-right{text-align:right;}
+  .hw-price{font-family:var(--mono); font-weight:700; font-size:16px; color:var(--text);}
+  .hw-chg{font-family:var(--mono); font-size:11.5px; margin-top:2px;}
+  .hw-chg.up{color:var(--green);} .hw-chg.down{color:var(--red);}
+
+  .home-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px 12px;}
+  .home-app{display:flex; flex-direction:column; align-items:center; gap:7px; background:none; border:none; color:var(--text); -webkit-tap-highlight-color:transparent;}
+  .home-app:active .home-icon{transform:scale(.92);}
+  .home-icon{width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 6px 16px rgba(0,0,0,.35); transition:transform .1s ease;}
+  .home-label{font-size:11px; color:var(--sub); font-family:var(--sans); font-weight:600; text-align:center;}
+
+  .home-dock{
+    position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom));
+    display:flex; justify-content:space-around; align-items:center; gap:8px;
+    background:rgba(18,25,34,.85); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:24px; padding:10px 14px; z-index:9998;
+  }
+  .dock-app{background:none; border:none; padding:0;}
+  .dock-app .home-icon{width:46px; height:46px; font-size:20px; box-shadow:none;}
+  .dock-app.active .home-icon{box-shadow:0 0 0 2px var(--bnb);}
+
+  #floatingHomeBtn{
+    position:fixed; right:18px; bottom:calc(18px + env(safe-area-inset-bottom)); z-index:500;
+    width:50px; height:50px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(18,25,34,.9); backdrop-filter:blur(10px); color:var(--gold); font-size:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.4);
+  }
+
+  /* ===== Auth Screen ===== */
+  #authScreen{
+    position:fixed; inset:0; z-index:10001; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:30px 24px; text-align:center; overflow-y:auto;
+    transition:opacity .3s ease, visibility .3s ease;
+  }
+  #authScreen.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .auth-logo{width:60px; height:60px; border-radius:16px; background:linear-gradient(135deg,var(--gold),#c9853d); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:28px; color:#1A1200; margin:0 auto 14px;}
+  .auth-title{font-size:20px; font-weight:800; margin-bottom:4px;}
+  .auth-sub{font-size:12.5px; color:var(--sub); margin-bottom:24px;}
+  .auth-box{width:100%; max-width:320px; display:flex; flex-direction:column; gap:10px;}
+  .auth-input{background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:13px 14px; border-radius:12px; font-family:var(--sans); font-size:14px; outline:none; width:100%;}
+  .auth-input:focus{border-color:var(--gold);}
+  .auth-btn{background:var(--gold); color:#1A1200; font-weight:800; border:none; padding:13px; border-radius:12px; font-size:14px; width:100%;}
+  .auth-btn.google{background:#fff; color:#1f1f1f; display:flex; align-items:center; justify-content:center; gap:10px;}
+  .auth-divider{display:flex; align-items:center; gap:10px; color:var(--sub); font-size:11px; margin:6px 0;}
+  .auth-divider::before, .auth-divider::after{content:""; flex:1; height:1px; background:var(--line);}
+  .auth-link{background:none; border:none; color:var(--gold); font-size:12.5px; text-decoration:underline; padding:4px;}
+  .auth-toggle{font-size:12.5px; color:var(--sub); margin-top:6px;}
+  .auth-msg{font-size:12px; min-height:16px; margin-top:2px;}
+  .auth-msg.err{color:var(--red);} .auth-msg.ok{color:var(--green);}
+
+  /* ===== Paywall Screen ===== */
+  #paywallScreen{
+    position:fixed; inset:0; z-index:9997; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:30px 22px; text-align:center; overflow-y:auto;
+    transition:opacity .3s ease, visibility .3s ease;
+  }
+  #paywallScreen.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .pw-icon{width:58px; height:58px; border-radius:50%; background:rgba(224,164,88,.12); border:1px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 14px;}
+  .pw-title{font-size:19px; font-weight:800; margin-bottom:6px;}
+  .pw-sub{font-size:13px; color:var(--sub); max-width:340px; margin:0 auto 22px; line-height:1.6;}
+  .pw-card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; width:100%; max-width:340px; text-align:left; margin-bottom:16px;}
+  .pw-card .pw-row{display:flex; justify-content:space-between; font-size:12.5px; padding:7px 0; border-bottom:1px solid var(--line);}
+  .pw-card .pw-row:last-child{border-bottom:none;}
+  .pw-card .pw-row span:first-child{color:var(--sub);}
+  .pw-card .pw-row span:last-child{font-family:var(--mono); font-weight:700; color:var(--text);}
+  .pw-box{width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px;}
+
+  /* ===== Admin Panel ===== */
+  #adminPanel{
+    position:fixed; inset:0; z-index:9996; background:var(--bg); overflow-y:auto;
+    padding:20px 18px 60px; display:none;
+  }
+  #adminPanel.show{display:block;}
+  .admin-header{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+  .admin-back{background:var(--panel-2); border:1px solid var(--line); color:var(--text); width:38px; height:38px; border-radius:12px; font-size:18px;}
+  .admin-header h2{font-size:18px; font-weight:800;}
+  .admin-panel-box{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px;}
+  .admin-panel-box h3{font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--gold); margin-bottom:12px; font-family:var(--mono);}
+  .admin-code-row{display:flex; gap:8px; margin-bottom:14px;}
+  .admin-code-row select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:11px; border-radius:10px; font-size:13px; flex:1;}
+  .admin-gen-list{display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto;}
+  .admin-code-item{display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-family:var(--mono); font-size:12px;}
+  .admin-code-item.used{opacity:.55;}
+  .admin-code-item .ac-code{font-weight:700; color:var(--text);}
+  .admin-code-item .ac-tag{font-size:10px; padding:2px 7px; border-radius:20px;}
+  .admin-code-item .ac-tag.free{background:rgba(63,185,80,.15); color:var(--green);}
+  .admin-code-item .ac-tag.used{background:rgba(138,151,166,.15); color:var(--sub);}
+  .admin-user-item{display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:12px; margin-bottom:8px;}
+  .admin-user-item .au-email{font-family:var(--mono); font-size:11.5px;}
+  .admin-user-item .au-status{font-size:10px; padding:2px 8px; border-radius:20px; font-family:var(--mono);}
+  .admin-user-item .au-status.active{background:rgba(63,185,80,.15); color:var(--green);}
+  .admin-user-item .au-status.free{background:rgba(224,164,88,.15); color:var(--gold);}
+  .admin-user-item .au-status.locked{background:rgba(248,81,73,.15); color:var(--red);}
+
+  /* ===== Install App panel ===== */
+  .install-card{display:flex; align-items:center; gap:14px; background:linear-gradient(135deg, rgba(224,164,88,.10), rgba(224,164,88,.02)); border:1px solid var(--line); border-radius:16px; padding:16px;}
+  .install-card .ic-icon{width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg,var(--gold),#c9853d); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;}
+  .install-card .ic-text{flex:1;}
+  .install-card .ic-text b{font-size:13.5px; display:block; margin-bottom:2px;}
+  .install-card .ic-text span{font-size:11.5px; color:var(--sub);}
+  .install-card button{background:var(--gold); color:#1A1200; font-weight:800; border:none; padding:10px 16px; border-radius:10px; font-size:12.5px; flex-shrink:0; white-space:nowrap;}
+  #installedBadge{display:flex; align-items:center; gap:8px; color:var(--green); font-family:var(--mono); font-size:12.5px; padding:6px 2px;}
+
+  #iosInstallModal{position:fixed; inset:0; z-index:10002; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center;}
+  #iosInstallModal.hidden{display:none;}
+  .ios-sheet{width:100%; max-width:480px; background:var(--panel); border-radius:20px 20px 0 0; padding:22px 20px calc(28px + env(safe-area-inset-bottom));}
+  .ios-sheet h4{font-size:15px; font-weight:800; margin-bottom:14px;}
+  .ios-step{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .ios-step:last-of-type{border-bottom:none;}
+  .ios-step .is-num{width:24px; height:24px; border-radius:50%; background:var(--panel-2); border:1px solid var(--gold); color:var(--gold); font-family:var(--mono); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .ios-close{width:100%; margin-top:16px; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:12px; border-radius:12px; font-weight:700; font-size:13.5px;}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div id="authScreen">
+  <div class="auth-logo">T</div>
+  <div class="auth-title">Tradeox mein Login karein</div>
+  <div class="auth-sub" id="authSub">Apna Google account ya email se sign in karein</div>
+
+  <div class="auth-box">
+    <button class="auth-btn google" id="googleLoginBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.04l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.96l2.97 2.34C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      Google se Sign in
+    </button>
+
+    <div class="auth-divider">ya email se</div>
+
+    <input class="auth-input" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+    <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="auth-btn" id="authSubmitBtn">Login</button>
+    <div class="auth-msg" id="authMsg"></div>
+
+    <div class="auth-toggle">
+      <span id="authToggleText">Account nahi hai?</span> <button class="auth-link" id="authToggleBtn">Sign up karein</button>
+      &nbsp;·&nbsp;
+      <button class="auth-link" id="authForgotBtn">Password bhool gaye?</button>
+    </div>
+  </div>
+</div>
+
+<div id="lockScreen" class="hidden">
+  <div class="lock-top">
+    <div class="lock-logo">T</div>
+    <div class="lock-brand">Tradeox</div>
+    <div class="lock-sub" id="lockSubText">App PIN set karein</div>
+  </div>
+
+  <div class="lock-mid">
+    <div class="lock-prompt" id="lockPrompt">PIN banayein</div>
+    <div class="lock-dots" id="lockDots">
+      <div class="lock-dot"></div><div class="lock-dot"></div><div class="lock-dot"></div><div class="lock-dot"></div>
+    </div>
+    <div class="lock-msg" id="lockMsg"></div>
+    <div class="lock-keypad" id="lockKeypad">
+      <button class="lock-key" data-k="1">1</button>
+      <button class="lock-key" data-k="2">2</button>
+      <button class="lock-key" data-k="3">3</button>
+      <button class="lock-key" data-k="4">4</button>
+      <button class="lock-key" data-k="5">5</button>
+      <button class="lock-key" data-k="6">6</button>
+      <button class="lock-key" data-k="7">7</button>
+      <button class="lock-key" data-k="8">8</button>
+      <button class="lock-key" data-k="9">9</button>
+      <button class="lock-key fn biometric" id="lockBiometric">👆</button>
+      <button class="lock-key" data-k="0">0</button>
+      <button class="lock-key fn" id="lockBackspace">⌫</button>
+    </div>
+  </div>
+
+  <div class="lock-bottom"><button id="lockForgotBtn">PIN bhool gaye? Reset karein</button></div>
+</div>
+
+<script>
+(function(){
+  const lockScreen = document.getElementById('lockScreen');
+  const lockDots = document.getElementById('lockDots');
+  const lockMsg = document.getElementById('lockMsg');
+  const lockPrompt = document.getElementById('lockPrompt');
+  const lockSubText = document.getElementById('lockSubText');
+  const lockKeypad = document.getElementById('lockKeypad');
+  const lockBackspace = document.getElementById('lockBackspace');
+  const lockBiometric = document.getElementById('lockBiometric');
+  const lockForgotBtn = document.getElementById('lockForgotBtn');
+
+  const PIN_KEY = 'tradeox_pin_hash';
+  const PIN_LEN = 4;
+  let entry = '';
+  let stage = localStorage.getItem(PIN_KEY) ? 'verify' : 'create'; // create -> confirm -> verify
+  let firstPin = '';
+
+  // simple non-cryptographic hash — this is a device-lock convenience, not real encryption
+  function hashPin(pin){
+    let h = 0;
+    for(let i=0;i<pin.length;i++){ h = ((h<<5)-h + pin.charCodeAt(i))|0; }
+    return String(h);
+  }
+
+  function setPrompt(){
+    if(stage==='create'){ lockPrompt.textContent = 'Naya 4-digit PIN banayein'; lockSubText.textContent = 'App PIN set karein'; }
+    else if(stage==='confirm'){ lockPrompt.textContent = 'PIN dobara likhein'; lockSubText.textContent = 'Confirm karein'; }
+    else { lockPrompt.textContent = 'PIN daalein'; lockSubText.textContent = 'Welcome back'; }
+  }
+  setPrompt();
+
+  function renderDots(err){
+    const dots = lockDots.querySelectorAll('.lock-dot');
+    dots.forEach((d,i)=> d.classList.toggle('filled', i < entry.length));
+    lockDots.classList.toggle('err', !!err);
+  }
+
+  function shakeAndReset(message){
+    lockMsg.textContent = message || 'Galat PIN, dobara koshish karein';
+    lockDots.classList.add('shake');
+    renderDots(true);
+    setTimeout(()=>{
+      lockDots.classList.remove('shake');
+      entry = '';
+      renderDots(false);
+    }, 400);
+  }
+
+  function unlockApp(){
+    lockScreen.classList.add('hidden');
+    document.body.style.overflow = '';
+    const home = document.getElementById('homeScreen');
+    if(home) home.classList.remove('hidden');
+  }
+  document.body.style.overflow = 'hidden';
+
+  function handleComplete(){
+    if(stage==='create'){
+      firstPin = entry;
+      entry = '';
+      stage = 'confirm';
+      setPrompt();
+      renderDots(false);
+    } else if(stage==='confirm'){
+      if(entry===firstPin){
+        localStorage.setItem(PIN_KEY, hashPin(entry));
+        entry = '';
+        lockMsg.textContent = '';
+        unlockApp();
+      } else {
+        firstPin = '';
+        stage = 'create';
+        setPrompt();
+        shakeAndReset('PIN match nahi hua, dobara banayein');
+      }
+    } else { // verify
+      if(hashPin(entry)===localStorage.getItem(PIN_KEY)){
+        entry = '';
+        lockMsg.textContent = '';
+        unlockApp();
+      } else {
+        shakeAndReset('Galat PIN, dobara koshish karein');
+      }
+    }
+  }
+
+  lockKeypad.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.lock-key[data-k]');
+    if(!btn) return;
+    if(entry.length >= PIN_LEN) return;
+    entry += btn.dataset.k;
+    renderDots(false);
+    lockMsg.textContent = '';
+    if(entry.length === PIN_LEN){
+      setTimeout(handleComplete, 120);
+    }
+  });
+
+  lockBackspace.addEventListener('click', ()=>{
+    entry = entry.slice(0,-1);
+    renderDots(false);
+  });
+
+  lockBiometric.addEventListener('click', ()=>{
+    lockMsg.textContent = 'Biometric is device par set up nahi hai — PIN use karein';
+  });
+
+  lockForgotBtn.addEventListener('click', ()=>{
+    if(confirm('PIN reset karne se aapko naya PIN banana hoga. Continue karein?')){
+      localStorage.removeItem(PIN_KEY);
+      entry = ''; firstPin = ''; stage = 'create';
+      setPrompt();
+      renderDots(false);
+      lockMsg.textContent = '';
+    }
+  });
+})();
+</script>
+
+<div id="homeScreen" class="hidden">
+  <div class="home-status">
+    <div class="home-time" id="homeTime">--:--</div>
+    <div class="home-date" id="homeDate">—</div>
+  </div>
+  <div class="home-widget" id="homeWidget">
+    <div class="hw-left">
+      <div class="hw-sym" id="homeWidgetSym">BTC/USDT</div>
+      <div class="hw-sub">Tap kar ke live signal kholein</div>
+    </div>
+    <div class="hw-right">
+      <div class="hw-price" id="homeWidgetPrice">—</div>
+      <div class="hw-chg" id="homeWidgetChg"></div>
+    </div>
+  </div>
+
+  <div class="home-grid">
+    <button class="home-app" data-target="panelLiveSignal"><span class="home-icon" style="background:linear-gradient(135deg,#3FB950,#1e7a35);">📶</span><span class="home-label">Live Signal</span></button>
+    <button class="home-app" data-target="panelChart"><span class="home-icon" style="background:linear-gradient(135deg,#5B9DEE,#2f5fa8);">📊</span><span class="home-label">Chart</span></button>
+    <button class="home-app" data-target="panelTrending"><span class="home-icon" style="background:linear-gradient(135deg,#F85149,#a52a22);">🔥</span><span class="home-label">Trending</span></button>
+    <button class="home-app" data-target="panelWatchlist"><span class="home-icon" style="background:linear-gradient(135deg,#E0A458,#a3703a);">⭐</span><span class="home-label">Watchlist</span></button>
+    <button class="home-app" data-target="panelAlerts"><span class="home-icon" style="background:linear-gradient(135deg,#E8C547,#a8901f);">🔔</span><span class="home-label">Alerts</span></button>
+    <button class="home-app" data-target="panelHistory"><span class="home-icon" style="background:linear-gradient(135deg,#8A97A6,#4a5563);">🕑</span><span class="home-label">History</span></button>
+    <button class="home-app" data-target="metricsPanel"><span class="home-icon" style="background:linear-gradient(135deg,#5B9DEE,#8A97A6);">📈</span><span class="home-label">Analysis</span></button>
+    <button class="home-app" data-target="panelRisk"><span class="home-icon" style="background:linear-gradient(135deg,#3FB950,#5B9DEE);">🛡️</span><span class="home-label">Risk Calc</span></button>
+    <button class="home-app" id="homeRelockApp"><span class="home-icon" style="background:linear-gradient(135deg,#161F2A,#0B0F14); border:1px solid var(--line);">🔒</span><span class="home-label">Lock</span></button>
+    <button class="home-app hidden" id="homeAdminApp"><span class="home-icon" style="background:linear-gradient(135deg,#c9853d,#7a4d1f);">🛠️</span><span class="home-label">Admin</span></button>
+    <button class="home-app" data-target="panelInstall"><span class="home-icon" style="background:linear-gradient(135deg,#E0A458,#c9853d);">📲</span><span class="home-label">Install App</span></button>
+  </div>
+
+  <div class="home-dock">
+    <button class="dock-app active" data-target="__home"><span class="home-icon" style="background:var(--bnb); color:#0B0E11;">🏠</span></button>
+    <button class="dock-app" data-target="panelLiveSignal"><span class="home-icon" style="background:linear-gradient(135deg,#3FB950,#1e7a35);">📶</span></button>
+    <button class="dock-app" data-target="panelChart"><span class="home-icon" style="background:linear-gradient(135deg,#5B9DEE,#2f5fa8);">📊</span></button>
+    <button class="dock-app" data-target="panelAlerts"><span class="home-icon" style="background:linear-gradient(135deg,#E8C547,#a8901f);">🔔</span></button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const homeScreen = document.getElementById('homeScreen');
+  const lockScreen = document.getElementById('lockScreen');
+  const appContent = document.getElementById('appContent');
+  const homeTime = document.getElementById('homeTime');
+  const homeDate = document.getElementById('homeDate');
+  const homeWidgetSym = document.getElementById('homeWidgetSym');
+  const homeWidgetPrice = document.getElementById('homeWidgetPrice');
+  const homeWidgetChg = document.getElementById('homeWidgetChg');
+
+  function tick(){
+    const now = new Date();
+    homeTime.textContent = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    homeDate.textContent = now.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
+  }
+  tick();
+  setInterval(tick, 1000*15);
+
+  function refreshWidget(){
+    try{
+      const w = JSON.parse(localStorage.getItem('tradeox_home_widget') || 'null');
+      if(w){
+        homeWidgetSym.textContent = w.symbol;
+        homeWidgetPrice.textContent = w.priceStr;
+        homeWidgetChg.textContent = w.chgStr;
+        homeWidgetChg.className = 'hw-chg ' + (w.up ? 'up' : 'down');
+      }
+    }catch(e){}
+  }
+
+  function goToApp(targetId){
+    homeScreen.classList.add('hidden');
+    appContent.classList.remove('hidden');
+    if(targetId){
+      requestAnimationFrame(()=>{
+        const el = document.getElementById(targetId);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    }
+  }
+
+  document.querySelectorAll('.home-app[data-target], .dock-app[data-target]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.target;
+      if(t === '__home') return; // already home
+      goToApp(t);
+    });
+  });
+
+  document.getElementById('homeRelockApp').addEventListener('click', ()=>{
+    homeScreen.classList.add('hidden');
+    lockScreen.classList.remove('hidden');
+  });
+
+  document.getElementById('floatingHomeBtn').addEventListener('click', ()=>{
+    appContent.classList.add('hidden');
+    homeScreen.classList.remove('hidden');
+    refreshWidget();
+  });
+
+  refreshWidget();
+});
+</script>
+
+<div id="paywallScreen" class="hidden">
+  <div class="pw-icon">🔒</div>
+  <div class="pw-title">Free Trial Khatam Ho Gaya</div>
+  <div class="pw-sub">Aapke 3 free analysis use ho chuke hain. Aage use karne ke liye monthly subscription activate karein.</div>
+
+  <div class="pw-card">
+    <div class="pw-row"><span>Monthly Fee</span><span>Rs. 25,000</span></div>
+    <div class="pw-row"><span>JazzCash / EasyPaisa</span><span>0324-4996576</span></div>
+    <div class="pw-row"><span>Account Name</span><span>Qasim Raza</span></div>
+  </div>
+  <div class="pw-sub" style="margin-bottom:16px;">Payment karne ke baad screenshot bhejein, aapko activation code milega. Code neeche daal kar activate karein.</div>
+
+  <div class="pw-box">
+    <input class="auth-input" id="activationCodeInput" type="text" placeholder="Activation code (e.g. TRX-XXXX-XXXX)" style="text-transform:uppercase; text-align:center; font-family:var(--mono); letter-spacing:.05em;">
+    <button class="auth-btn" id="activateCodeBtn">Activate Karein</button>
+    <div class="auth-msg" id="activateMsg"></div>
+    <button class="auth-link" id="paywallLogoutBtn" style="margin-top:8px;">Logout</button>
+  </div>
+</div>
+
+<div id="adminPanel">
+  <div class="admin-header">
+    <button class="admin-back" id="adminBackBtn">←</button>
+    <h2>🛠️ Admin Panel</h2>
+  </div>
+
+  <div class="admin-panel-box">
+    <h3>Naya Activation Code Banayein</h3>
+    <div class="admin-code-row">
+      <select id="adminCodeDuration">
+        <option value="30">30 din (1 month)</option>
+        <option value="90">90 din (3 months)</option>
+        <option value="365">365 din (1 year)</option>
+      </select>
+      <button class="auth-btn" id="adminGenBtn" style="width:auto; padding:11px 18px;">+ Generate</button>
+    </div>
+    <div class="admin-gen-list" id="adminCodesList">
+      <div class="empty-state">Loading codes…</div>
+    </div>
+  </div>
+
+  <div class="admin-panel-box">
+    <h3>Users</h3>
+    <div id="adminUsersList">
+      <div class="empty-state">Loading users…</div>
+    </div>
+  </div>
+</div>
+
+<div id="appContent" class="hidden">
+<header>
+  <div class="brand"><div class="dot off" id="connDot"></div><h1>Tradeox — Crypto Market Analytics</h1><span class="vip-badge">⭐ VIP</span></div>
+  <div class="sub" id="connStatus">Coin select karein aur ANALYZE dabayein</div>
+  <div class="disclaimer">
+    Koi API key, secret key, ya manual indicator setup nahi chahiye. Coin select karein, ANALYZE dabayein — app khud market data leta hai aur Trend, RSI, Momentum, Volume, Support/Resistance, Volatility calculate karke Entry/SL/TP/Risk-Reward ke saath ek final plan deta hai. Ye guaranteed-profit signal nahi hai — hamesha apna risk khud manage karein.
+  </div>
+</header>
+
+<main>
+  <div class="panel" id="panelInstall">
+    <h3>📲 App Install Karein</h3>
+    <div class="install-card">
+      <div class="ic-icon">N</div>
+      <div class="ic-text">
+        <b>Tradeox ko home screen par install karein</b>
+        <span id="installSubtext">Fast access, full-screen app jaisa experience — Chrome, iPhone, Android sab par</span>
+      </div>
+      <button id="installActionBtn">Install</button>
+    </div>
+    <div id="installedBadge" class="hidden">✅ App pehle se installed hai</div>
+  </div>
+
+  <div class="panel" id="panelWatchlist">
+    <h3>⭐ Watchlist</h3>
+    <div class="watch-bar" id="watchBar">
+      <div class="empty-state" style="padding:8px 0;">Koi coin star nahi kiya abhi. Coin select karke ⭐ button dabayein.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelLiveSignal">
+    <h3 style="text-transform:none; font-size:18px; color:var(--text); font-family:var(--sans); font-weight:800; letter-spacing:-0.01em;">Live Signal</h3>
+    <div class="sub" style="margin-bottom:14px;">SMA 9/21 + RSI 14 momentum filter. Not a guaranteed-profit signal.</div>
+    <div class="signal-card idle" id="liveSigCard">
+      <div class="sig-left">
+        <div class="sig-label">Current Setup</div>
+        <div class="sig-value idle" id="liveSigValue">Coin select karke ANALYZE dabayein</div>
+        <div class="sig-reason" id="liveSigReason"></div>
+      </div>
+      <div class="sig-right">
+        <div class="sig-price" id="liveSigPrice">—</div>
+        <div class="sig-change" id="liveSigChange"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div>
+      <div class="field-label">Coin</div>
+      <select id="symbolSelect">
+        <option value="BTCUSDT">BTC/USDT</option>
+        <option value="ETHUSDT">ETH/USDT</option>
+        <option value="BNBUSDT">BNB/USDT</option>
+        <option value="SOLUSDT">SOL/USDT</option>
+        <option value="XRPUSDT">XRP/USDT</option>
+        <option value="DOGEUSDT">DOGE/USDT</option>
+        <option value="ADAUSDT">ADA/USDT</option>
+        <option value="TRXUSDT">TRX/USDT</option>
+        <option value="AVAXUSDT">AVAX/USDT</option>
+        <option value="LINKUSDT">LINK/USDT</option>
+        <option value="DOTUSDT">DOT/USDT</option>
+        <option value="LTCUSDT">LTC/USDT</option>
+        <option value="POLUSDT">POL/USDT</option>
+        <option value="SHIBUSDT">SHIB/USDT</option>
+        <option value="OPUSDT">OP/USDT</option>
+        <option value="ARBUSDT">ARB/USDT</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Timeframe</div>
+      <select id="intervalSelect">
+        <option value="1m">1m</option>
+        <option value="5m">5m</option>
+        <option value="15m" selected>15m</option>
+        <option value="30m">30m</option>
+        <option value="1h">1h</option>
+        <option value="4h">4h</option>
+        <option value="1d">1d</option>
+      </select>
+    </div>
+    <div style="display:flex; align-items:flex-end; gap:8px;">
+      <button class="analyze-btn" id="analyzeBtn" style="width:100%">ANALYZE</button>
+      <button class="star-btn" id="starBtn" title="Watchlist mein add/remove karein">☆</button>
+    </div>
+  </div>
+
+  <div class="controls" style="grid-template-columns:1fr;">
+    <div class="toggle-row">
+      <span>🔄 Auto-refresh (har 60 second mein signal khud refresh hoga)</span>
+      <label class="switch"><input type="checkbox" id="autoRefreshToggle"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="signal-card idle" id="signalCard">
+    <div class="sig-left">
+      <div class="sig-label">Final Result</div>
+      <div class="sig-value idle" id="sigValue">Coin select karke ANALYZE dabayein</div>
+      <div class="sig-reason" id="sigReason"></div>
+      <div class="sig-score" id="sigScore"></div>
+    </div>
+    <div class="sig-right">
+      <div class="sig-price" id="sigPrice">—</div>
+      <div class="sig-change" id="sigChange"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelChart">
+    <h3>📊 TradingView Live Chart</h3>
+    <div class="sub" style="margin-bottom:12px;">Live market chart — coin select karte hi chart bhi change hoga.</div>
+    <div class="tv-wrap">
+      <div class="tradingview-widget-container">
+        <div id="tvChartContainer" style="height:520px;"></div>
+      </div>
+    </div>
+    <div class="tv-link">Chart by <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a></div>
+  </div>
+
+  <div class="panel" id="panelTrending">
+    <h3>🔥 Trending Coins</h3>
+    <div class="sub" style="margin-bottom:12px;">Scanner ranks liquid USDT pairs by momentum and volume. It is not a buy guarantee.</div>
+    <div class="trend-grid" id="trendGrid">
+      <div class="empty-state" style="grid-column:1/-1">Trending coins load ho rahe hain…</div>
+    </div>
+    <div class="trend-refresh"><button id="trendRefreshBtn">↻ Refresh</button></div>
+  </div>
+
+  <div class="panel" id="panelAlerts">
+    <h3>🔔 Price Alerts</h3>
+    <div class="sub" style="margin-bottom:12px;">Target price set karein — reach hote hi browser notification aayegi (tab open rakhna zaroori hai).</div>
+    <div class="alert-form">
+      <select id="alertSymbol"></select>
+      <input id="alertPrice" type="number" step="any" placeholder="Target price">
+      <button id="alertAddBtn">+ Add</button>
+    </div>
+    <div class="alert-list" id="alertList">
+      <div class="empty-state" style="padding:8px 0;">Koi alert set nahi hai.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelHistory">
+    <h3>🕑 Signal History</h3>
+    <div class="sub" style="margin-bottom:12px;">Har ANALYZE ka result yahan save hota hai (aapke device par, last 20).</div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state" style="padding:8px 0;">Abhi tak koi signal history nahi.</div>
+    </div>
+    <div class="history-clear"><button id="historyClearBtn">Clear history</button></div>
+  </div>
+
+  <div class="panel" id="metricsPanel">
+    <h3>Automatic Analysis</h3>
+    <div class="metrics-grid" id="metricsGrid">
+      <div class="empty-state" style="grid-column:1/-1">ANALYZE dabane ke baad Trend, RSI, Momentum, Volume, Support/Resistance aur Volatility yahan dikhega.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="planPanel">
+    <h3>Trade Plan</h3>
+    <div class="plan-grid" id="planGrid">
+      <div class="empty-state" style="grid-column:1/-1">Exact Entry, Stop Loss, TP1, TP2 aur Risk/Reward yahan dikhega.</div>
+    </div>
+    <div class="plan-reason hidden" id="planReason"></div>
+  </div>
+
+  <div class="panel" id="panelRisk">
+    <h3>Risk Management — Position Size</h3>
+    <div class="risk-grid">
+      <div class="risk-field"><label>Capital (USDT)</label><input id="capitalInput" type="number" value="1000" min="1" step="1"></div>
+      <div class="risk-field"><label>Risk per trade %</label><input id="riskInput" type="number" value="1" min="0.1" max="5" step="0.1"></div>
+    </div>
+    <div class="risk-output" id="riskOutput">
+      <div class="risk-out-item"><div class="p-label">Risk amount</div><div class="p-value" id="riskAmountOut">—</div></div>
+      <div class="risk-out-item"><div class="p-label">Position size (qty)</div><div class="p-value" id="riskQtyOut">—</div></div>
+      <div class="risk-out-item"><div class="p-label">Position value</div><div class="p-value" id="riskValueOut">—</div></div>
+    </div>
+    <div class="risk-note">Formula: <b>Risk amount = Capital × Risk%</b>. Uske baad <b>Qty = Risk amount ÷ (Entry − Stop Loss ki distance)</b>. Matlab agar SL hit ho jaye, to sirf utna hi loss hoga jitna aapne "Risk %" mein set kiya — chahe coin kitna bhi volatile ho. Stop-loss discipline: SL lagne ke baad usay move mat karein, aur ek trade mein apne total capital ka risk % kabhi 1-2% se zyada na rakhein.</div>
+  </div>
+
+  <div class="panel">
+    <h3>Score Kaise Banta Hai (100 points)</h3>
+    <div class="weights-list">
+      <div class="weight-row"><span class="w-name">Trend (EMA 9/21/50)</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:30%"></span></span><span class="w-pts">30</span></div>
+      <div class="weight-row"><span class="w-name">RSI (14)</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:25%"></span></span><span class="w-pts">25</span></div>
+      <div class="weight-row"><span class="w-name">Momentum (15 candles)</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:20%"></span></span><span class="w-pts">20</span></div>
+      <div class="weight-row"><span class="w-name">Volume vs average</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:15%"></span></span><span class="w-pts">15</span></div>
+      <div class="weight-row"><span class="w-name">Support / Resistance</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:10%"></span></span><span class="w-pts">10</span></div>
+    </div>
+    <div class="weights-note">
+      Har factor ka score add hoke ek final number (0-100) banata hai. <code>Score ≥ 72</code> → 🟢 LONG. <code>Score ≤ 28</code> → 🔴 SHORT. Beech mein kuch bhi ho → 🟡 WAIT (koi clear confirmation nahi). Extra safety rule: agar RSI extreme zone mein ho (<code>&gt;75</code> ya <code>&lt;25</code>), to score kitna bhi ho, app hamesha WAIT dikhayega — kyunke overbought/oversold mein trend achanak palat sakta hai.
+      <br><br>Ye weights fixed hain, hamesha same tareeqe se calculate hote hain — koi randomness ya guess nahi.
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: Binance public market API (read-only) · Koi API key ya secret key kabhi nahi mangi jaati · Real order execution is OFF, ye sirf decision-support tool hai · Koi bhi system 100% guaranteed profit nahi de sakta
+</footer>
+<button id="floatingHomeBtn" title="Home screen">🏠</button>
+
+<div id="iosInstallModal" class="hidden">
+  <div class="ios-sheet">
+    <h4>📲 iPhone par install karein</h4>
+    <div class="ios-step"><div class="is-num">1</div><div>Safari ke bottom bar mein <b>Share</b> icon (□↑) par tap karein</div></div>
+    <div class="ios-step"><div class="is-num">2</div><div>List scroll karke <b>"Add to Home Screen"</b> select karein</div></div>
+    <div class="ios-step"><div class="is-num">3</div><div>Top-right corner mein <b>"Add"</b> dabayein — bas, app home screen par aa jayegi</div></div>
+    <button class="ios-close" id="iosInstallCloseBtn">Samajh gaya</button>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const connDot = $('connDot'), connStatus = $('connStatus');
+  const symbolSelect = $('symbolSelect'), intervalSelect = $('intervalSelect'), analyzeBtn = $('analyzeBtn');
+  const signalCard = $('signalCard'), sigValue = $('sigValue'), sigReason = $('sigReason'), sigScore = $('sigScore');
+  const sigPrice = $('sigPrice'), sigChange = $('sigChange');
+  const liveSigCard = $('liveSigCard'), liveSigValue = $('liveSigValue'), liveSigReason = $('liveSigReason');
+  const liveSigPrice = $('liveSigPrice'), liveSigChange = $('liveSigChange');
+  const metricsGrid = $('metricsGrid'), planGrid = $('planGrid'), planReason = $('planReason');
+  const capitalInput = $('capitalInput'), riskInput = $('riskInput');
+  const riskAmountOut = $('riskAmountOut'), riskQtyOut = $('riskQtyOut'), riskValueOut = $('riskValueOut');
+  const watchBar = $('watchBar'), starBtn = $('starBtn'), autoRefreshToggle = $('autoRefreshToggle');
+  const alertSymbol = $('alertSymbol'), alertPrice = $('alertPrice'), alertAddBtn = $('alertAddBtn'), alertList = $('alertList');
+  const historyList = $('historyList'), historyClearBtn = $('historyClearBtn');
+
+  let autoRefreshTimer = null;
+  let alertPollTimer = null;
+
+  let lastEntry = null, lastSL = null; // populated after each analysis
+
+  const LOOKBACK = 150;     // candles fetched
+  const SR_WINDOW = 40;     // candles used for support/resistance
+
+  // map our dropdown interval to TradingView's interval code
+  const TV_INTERVAL = {'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'};
+
+  // ---------- indicator math ----------
+  function sma(values, period){
+    const out = new Array(values.length).fill(null);
+    let sum = 0;
+    for(let i=0;i<values.length;i++){
+      sum += values[i];
+      if(i>=period) sum -= values[i-period];
+      if(i>=period-1) out[i] = sum/period;
+    }
+    return out;
+  }
+
+  function ema(values, period){
+    const out = new Array(values.length).fill(null);
+    if(values.length < period) return out;
+    let sum = 0;
+    for(let i=0;i<period;i++) sum += values[i];
+    out[period-1] = sum/period;
+    const k = 2/(period+1);
+    for(let i=period;i<values.length;i++){
+      out[i] = values[i]*k + out[i-1]*(1-k);
+    }
+    return out;
+  }
+
+  function rsi(values, period){
+    const out = new Array(values.length).fill(null);
+    let gains=0, losses=0, avgG=0, avgL=0;
+    for(let i=1;i<values.length;i++){
+      const diff = values[i]-values[i-1];
+      const gain = diff>0?diff:0;
+      const loss = diff<0?-diff:0;
+      if(i<=period){
+        gains+=gain; losses+=loss;
+        if(i===period){
+          avgG=gains/period; avgL=losses/period;
+          out[i] = avgL===0?100:100-(100/(1+avgG/avgL));
+        }
+      } else {
+        avgG = (avgG*(period-1)+gain)/period;
+        avgL = (avgL*(period-1)+loss)/period;
+        out[i] = avgL===0?100:100-(100/(1+avgG/avgL));
+      }
+    }
+    return out;
+  }
+
+  function atr(cands, period){
+    const tr = new Array(cands.length).fill(null);
+    for(let i=1;i<cands.length;i++){
+      tr[i]=Math.max(
+        cands[i].h-cands[i].l,
+        Math.abs(cands[i].h-cands[i-1].c),
+        Math.abs(cands[i].l-cands[i-1].c)
+      );
+    }
+    const out = new Array(cands.length).fill(null);
+    let sum=0;
+    for(let i=1;i<cands.length;i++){
+      sum += tr[i] || 0;
+      if(i>=period){
+        if(i>period) sum -= tr[i-period] || 0;
+        out[i]=sum/period;
+      }
+    }
+    return out;
+  }
+
+  function volumeSma(cands, period){
+    return sma(cands.map(c=>c.v||0), period);
+  }
+
+  function supportResistance(cands, window){
+    const n = cands.length;
+    const start = Math.max(0, n-window);
+    let hi = -Infinity, lo = Infinity;
+    for(let i=start;i<n-1;i++){ // exclude current forming candle
+      if(cands[i].h>hi) hi=cands[i].h;
+      if(cands[i].l<lo) lo=cands[i].l;
+    }
+    return {resistance:hi, support:lo};
+  }
+
+  function fmtPrice(p){
+    if(p==null || isNaN(p)) return '—';
+    if(p>=1000) return '$'+p.toLocaleString(undefined,{maximumFractionDigits:2});
+    if(p>=1) return '$'+p.toFixed(4);
+    return '$'+p.toFixed(8).replace(/0+$/,'').replace(/\.$/,'');
+  }
+
+  // ---------- state ----------
+  function setLoading(isLoading){
+    analyzeBtn.disabled = isLoading;
+    analyzeBtn.textContent = isLoading ? 'ANALYZING…' : 'ANALYZE';
+    analyzeBtn.classList.toggle('loading', isLoading);
+  }
+
+  function setIdleCard(){
+    signalCard.className = 'signal-card idle';
+    sigValue.className = 'sig-value idle';
+    liveSigCard.className = 'signal-card idle';
+    liveSigValue.className = 'sig-value idle';
+  }
+
+  // ---------- core analysis ----------
+  async function analyze(){
+    const symbol = symbolSelect.value;
+
+    if(window.NG && typeof window.NG.checkAndConsumeTry === 'function'){
+      const allowed = await window.NG.checkAndConsumeTry();
+      if(!allowed){
+        window.NG.showPaywall();
+        return;
+      }
+    }
+
+    if(symbolStatus[symbol] && symbolStatus[symbol] !== 'TRADING'){
+      setIdleCard();
+      const reason = symbolStatus[symbol]==='MISSING' ? 'delist ho chuka hai' : 'temporarily suspend hai';
+      sigValue.textContent = 'Coin unavailable';
+      sigReason.textContent = `❌ ${symbol} Binance par ab ${reason}. Dropdown se koi doosra coin select karein.`;
+      connStatus.textContent = `⚠️ ${symbol} ${reason}`;
+      connDot.classList.add('off');
+      return;
+    }
+
+    setLoading(true);
+    connStatus.textContent = 'Market data li ja rahi hai…';
+    connDot.classList.add('off');
+    sigReason.textContent = '';
+    sigScore.textContent = '';
+
+    try{
+      const interval = intervalSelect.value;
+      const klinesUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${LOOKBACK}`;
+      const tickerUrl = `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`;
+      const [klinesRes, tickerRes] = await Promise.all([
+        fetch(klinesUrl, {cache:'no-store'}),
+        fetch(tickerUrl, {cache:'no-store'})
+      ]);
+      if(!klinesRes.ok){
+        if(klinesRes.status === 400){
+          symbolStatus[symbol] = 'MISSING';
+          applySymbolStatusToDropdown();
+          throw new Error(`${symbol} Binance par valid nahi hai (delisted ho sakta hai).`);
+        }
+        throw new Error('HTTP '+klinesRes.status);
+      }
+      const raw = await klinesRes.json();
+      const candles = raw.map(k=>({t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4], v:+k[5]}));
+
+      if(candles.length < 60){
+        throw new Error('Kaafi candles nahi milin — dobara try karein.');
+      }
+
+      // use the exact live ticker price (matches Binance app) instead of the last kline's close,
+      // which can lag slightly behind the true current price
+      if(tickerRes.ok){
+        const tickerData = await tickerRes.json();
+        const livePrice = Number(tickerData?.price);
+        if(livePrice > 0){
+          candles[candles.length-1].c = livePrice;
+        }
+      }
+
+      runAnalysis(symbol, candles);
+      connStatus.textContent = 'Live — Binance public market data se connected';
+      connDot.classList.remove('off');
+    }catch(e){
+      const isSymbolIssue = symbolStatus[symbol] === 'MISSING' || symbolStatus[symbol] === 'HALT' || symbolStatus[symbol] === 'BREAK';
+      connStatus.textContent = isSymbolIssue
+        ? `⚠️ ${symbol} Binance par unavailable hai.`
+        : 'Binance API access is unavailable, market features remain safe/read-only and paper trading can still be used when public market data is reachable.';
+      connDot.classList.add('off');
+      setIdleCard();
+      sigValue.textContent = 'Data nahi mila';
+      sigReason.textContent = isSymbolIssue
+        ? `❌ ${e.message} Dropdown se koi doosra coin select karein.`
+        : 'Binance public market endpoint is waqt reachable nahi hai. Koi restriction bypass nahi kiya jaata — thodi der baad dobara ANALYZE dabayein.';
+      liveSigValue.textContent = 'Data nahi mila';
+      liveSigReason.textContent = 'Market data unavailable — dobara try karein.';
+      liveSigPrice.textContent = '—';
+      liveSigChange.textContent = '';
+      metricsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Analysis unavailable.</div>';
+      planGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Analysis unavailable.</div>';
+      planReason.classList.add('hidden');
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  function runAnalysis(symbol, candles){
+    const n = candles.length;
+    const i = n-1;
+    const closes = candles.map(c=>c.c);
+
+    const e9 = ema(closes,9), e21 = ema(closes,21), e50 = ema(closes,50);
+    const s9 = sma(closes,9), s21 = sma(closes,21);
+    const rsiVals = rsi(closes,14);
+    const atrVals = atr(candles,14);
+    const volAvg = volumeSma(candles,20);
+    const {support, resistance} = supportResistance(candles, SR_WINDOW);
+
+    const price = closes[i];
+    const rsiNow = rsiVals[i];
+
+    // quick Live Signal: SMA9 vs SMA21 crossover + RSI14 momentum filter
+    renderLiveSignal(price, closes, s9, s21, rsiNow, i);
+    const atrNow = atrVals[i] || price*0.005;
+    const atrPct = (atrNow/price)*100;
+    const volNow = candles[i].v || 0;
+    const avgVol = volAvg[i] || volNow;
+    const relVol = avgVol>0 ? volNow/avgVol : 1;
+
+    // momentum: % change over last 15 candles
+    const momIdx = Math.max(0, i-15);
+    const momPct = ((closes[i]-closes[momIdx])/closes[momIdx])*100;
+
+    // ---- scoring (0-100 buy-leaning score) ----
+    let score = 0;
+    const trendChecks = [e9[i]>e21[i], e21[i]>e50[i], price>e50[i]];
+    const trendUpCount = trendChecks.filter(Boolean).length;
+    score += trendUpCount/3*30; // 0-30
+
+    const rsiScore = Math.max(0, Math.min(25, ((rsiNow-30)/40)*25));
+    score += rsiScore; // 0-25
+
+    const momScore = Math.max(0, Math.min(20, 10 + momPct*5));
+    score += momScore; // 0-20
+
+    let volScore = 7.5;
+    const candleUp = closes[i] >= closes[i-1];
+    if(relVol >= 1.2) volScore = candleUp ? 15 : 0;
+    score += volScore; // 0-15
+
+    let srScore = 5;
+    const nearSupport = support>0 && (price-support)/price <= 0.01 && price>=support;
+    const nearResistance = resistance>0 && (resistance-price)/price <= 0.01 && price<=resistance;
+    if(nearSupport) srScore = 10;
+    else if(nearResistance) srScore = 0;
+    score += srScore; // 0-10
+
+    score = Math.round(Math.max(0, Math.min(100, score)));
+
+    const rsiExtreme = rsiNow!=null && (rsiNow>75 || rsiNow<25);
+
+    let decision = 'WAIT';
+    if(!rsiExtreme && score>=72) decision = 'LONG';
+    else if(!rsiExtreme && score<=28) decision = 'SHORT';
+
+    // ---- trend / label helpers ----
+    const trendLabel = trendUpCount===3 ? 'Uptrend (strong)' : trendUpCount===0 ? 'Downtrend (strong)' : 'Sideways / Mixed';
+    const trendDir = trendUpCount===3 ? 'up' : trendUpCount===0 ? 'down' : 'flat';
+
+    const rsiZone = rsiNow>=70 ? 'Overbought' : rsiNow<=30 ? 'Oversold' : 'Neutral';
+    const rsiDir = rsiNow>=55 ? 'up' : rsiNow<=45 ? 'down' : 'flat';
+
+    const momDir = momPct>0.2 ? 'up' : momPct<-0.2 ? 'down' : 'flat';
+    const volLabel = relVol>=1.2 ? 'High' : relVol<=0.7 ? 'Low' : 'Normal';
+    const volaLabel = atrPct>=1.5 ? 'High' : atrPct>=0.5 ? 'Medium' : 'Low';
+
+    // ---- entry / SL / TP using ATR ----
+    let entry=price, sl=null, tp1=null, tp2=null, rr=null, direction='WAIT';
+    if(decision==='LONG'){
+      direction='LONG';
+      sl  = entry - 1.2*atrNow;
+      tp1 = entry + 1.8*atrNow;
+      tp2 = entry + 3.0*atrNow;
+      rr  = (tp1-entry)/(entry-sl);
+    } else if(decision==='SHORT'){
+      direction='SHORT';
+      sl  = entry + 1.2*atrNow;
+      tp1 = entry - 1.8*atrNow;
+      tp2 = entry - 3.0*atrNow;
+      rr  = (entry-tp1)/(sl-entry);
+    }
+
+    // reasons that "aligned" for the headline
+    const aligned = [];
+    if(decision==='LONG'){
+      if(trendUpCount>=2) aligned.push('Trend');
+      if(momScore>=14) aligned.push('Momentum');
+      if(volScore>=15) aligned.push('Volume');
+      if(rsiScore>=15) aligned.push('RSI');
+      if(nearSupport) aligned.push('Support zone');
+    } else if(decision==='SHORT'){
+      if(trendUpCount<=1) aligned.push('Trend');
+      if(momScore<=6) aligned.push('Momentum');
+      if(volScore===0) aligned.push('Volume');
+      if(rsiScore<=10) aligned.push('RSI');
+      if(nearResistance) aligned.push('Resistance zone');
+    }
+
+    // ---- render ----
+    renderSignal(decision, price, candles, score, rsiExtreme, aligned);
+    renderMetrics({trendLabel, trendDir, rsiNow, rsiZone, rsiDir, momPct, momDir, relVol, volLabel, support, resistance, price, atrPct, volaLabel});
+    renderPlan(direction, entry, sl, tp1, tp2, rr, aligned, decision, rsiExtreme, score);
+    pushHistory({symbol, decision, price, score, t: Date.now()});
+
+    // cache for OS-style home screen widget
+    const prevClose = candles[candles.length-2]?.c ?? price;
+    const chgPct = ((price-prevClose)/prevClose)*100;
+    try{
+      localStorage.setItem('tradeox_home_widget', JSON.stringify({
+        symbol, priceStr: fmtPrice(price),
+        chgStr: (chgPct>=0?'▲ ':'▼ ')+Math.abs(chgPct).toFixed(2)+'%',
+        up: chgPct>=0
+      }));
+    }catch(e){}
+
+    lastEntry = (decision==='WAIT') ? null : entry;
+    lastSL = (decision==='WAIT') ? null : sl;
+    updateRiskOutput();
+  }
+
+  function updateRiskOutput(){
+    const capital = Number(capitalInput.value) || 0;
+    const riskPct = Number(riskInput.value) || 0;
+    const riskAmount = capital * riskPct / 100;
+    riskAmountOut.textContent = riskAmount>0 ? '$'+riskAmount.toFixed(2) : '—';
+
+    if(lastEntry==null || lastSL==null){
+      riskQtyOut.textContent = '—';
+      riskValueOut.textContent = '—';
+      return;
+    }
+    const slDistance = Math.abs(lastEntry - lastSL);
+    if(slDistance<=0){
+      riskQtyOut.textContent = '—';
+      riskValueOut.textContent = '—';
+      return;
+    }
+    const qty = riskAmount / slDistance;
+    const posValue = qty * lastEntry;
+    riskQtyOut.textContent = qty>=1 ? qty.toFixed(4) : qty.toFixed(6);
+    riskValueOut.textContent = '$'+posValue.toFixed(2);
+  }
+
+  function renderLiveSignal(price, closes, s9, s21, rsiNow, i){
+    const s9now = s9[i], s21now = s21[i];
+    let decision = 'WAIT';
+    if(s9now!=null && s21now!=null && rsiNow!=null){
+      const bullCross = s9now > s21now;
+      if(bullCross && rsiNow < 70) decision = 'BUY';
+      else if(!bullCross && rsiNow > 30) decision = 'SELL';
+    }
+    const cls = decision==='BUY' ? 'long' : decision==='SELL' ? 'short' : 'wait';
+    liveSigCard.className = 'signal-card '+cls;
+    liveSigValue.className = 'sig-value '+cls;
+    const badge = decision==='BUY' ? '🟢' : decision==='SELL' ? '🔴' : '🟡';
+    liveSigValue.innerHTML = `<span>${badge}</span><span>${decision}</span>`;
+
+    const smaLabel = (s9now!=null && s21now!=null) ? (s9now>s21now ? 'SMA9 above SMA21' : 'SMA9 below SMA21') : 'SMA data insufficient';
+    liveSigReason.textContent = `${smaLabel} • RSI ${rsiNow!=null?rsiNow.toFixed(1):'—'}`;
+
+    liveSigPrice.textContent = fmtPrice(price);
+    const prev = closes[closes.length-2] ?? price;
+    const chg = ((price-prev)/prev)*100;
+    liveSigChange.textContent = (chg>=0?'▲ ':'▼ ')+Math.abs(chg).toFixed(2)+'%';
+    liveSigChange.className = 'sig-change '+(chg>=0?'up':'down');
+  }
+
+  function renderSignal(decision, price, candles, score, rsiExtreme, aligned){
+    const cls = decision==='LONG' ? 'long' : decision==='SHORT' ? 'short' : 'wait';
+    signalCard.className = 'signal-card '+cls;
+    sigValue.className = 'sig-value '+cls;
+    const badge = decision==='LONG' ? '🟢' : decision==='SHORT' ? '🔴' : '🟡';
+    sigValue.innerHTML = `<span>${badge}</span><span>${decision==='WAIT'?'WAIT / NO TRADE':decision}</span>`;
+
+    let reason;
+    if(rsiExtreme){
+      reason = `WAIT — RSI extreme zone mein hai, is waqt entry risky hai. Confirmation ka intezaar karein.`;
+    } else if(decision==='WAIT'){
+      reason = `Score ${score}/100 — clear confirmation nahi mili (LONG ke liye 72+, SHORT ke liye 28- chahiye). Abhi trade skip karein.`;
+    } else {
+      reason = `${aligned.join(' + ') || 'Confirmations'} aligned — score ${score}/100.`;
+    }
+    sigReason.textContent = reason;
+    sigScore.textContent = `Confidence score: ${score} / 100`;
+
+    sigPrice.textContent = fmtPrice(price);
+    const prev = candles[candles.length-2]?.c ?? price;
+    const chg = ((price-prev)/prev)*100;
+    sigChange.textContent = (chg>=0?'▲ ':'▼ ')+Math.abs(chg).toFixed(2)+'%';
+    sigChange.className = 'sig-change '+(chg>=0?'up':'down');
+  }
+
+  function metricCard(label, value, sub, dir){
+    const cls = dir==='up'?'up':dir==='down'?'down':'flat';
+    return `<div class="metric"><div class="m-label">${label}</div><div class="m-value ${cls}">${value}</div><div class="m-sub">${sub}</div></div>`;
+  }
+
+  function renderMetrics(d){
+    metricsGrid.innerHTML = [
+      metricCard('Trend', d.trendLabel, 'EMA 9 / 21 / 50 alignment', d.trendDir),
+      metricCard('RSI (14)', d.rsiNow!=null?d.rsiNow.toFixed(1):'—', d.rsiZone, d.rsiDir),
+      metricCard('Momentum', (d.momPct>=0?'+':'')+d.momPct.toFixed(2)+'%', 'Last 15 candles', d.momDir),
+      metricCard('Volume', d.relVol.toFixed(2)+'x avg', d.volLabel+' relative volume', d.relVol>=1.2?'up':d.relVol<=0.7?'down':'flat'),
+      metricCard('Support / Resistance', fmtPrice(d.support)+' / '+fmtPrice(d.resistance), 'Recent range (last '+SR_WINDOW+' candles)', 'flat'),
+      metricCard('Volatility (ATR)', d.atrPct.toFixed(2)+'%', d.volaLabel+' volatility', 'flat'),
+    ].join('');
+  }
+
+  function renderPlan(direction, entry, sl, tp1, tp2, rr, aligned, decision, rsiExtreme, score){
+    const dirCls = direction==='LONG'?'long':direction==='SHORT'?'short':'wait';
+    planGrid.innerHTML = `
+      <div class="plan-item dir"><div class="p-label">Direction</div><div class="p-value ${dirCls}">${direction}</div></div>
+      <div class="plan-item"><div class="p-label">Entry</div><div class="p-value">${fmtPrice(entry)}</div></div>
+      <div class="plan-item sl"><div class="p-label">Stop Loss</div><div class="p-value">${sl!=null?fmtPrice(sl):'—'}</div></div>
+      <div class="plan-item tp"><div class="p-label">TP1</div><div class="p-value">${tp1!=null?fmtPrice(tp1):'—'}</div></div>
+      <div class="plan-item tp"><div class="p-label">TP2</div><div class="p-value">${tp2!=null?fmtPrice(tp2):'—'}</div></div>
+      <div class="plan-item"><div class="p-label">Risk / Reward</div><div class="p-value">${rr!=null?rr.toFixed(2):'—'}</div></div>
+    `;
+    planReason.classList.remove('hidden');
+    if(direction==='WAIT'){
+      planReason.innerHTML = rsiExtreme
+        ? `<b>Reason:</b> RSI extreme zone (overbought/oversold) — is waqt entry ka risk zyada hai, isliye koi position nahi.`
+        : `<b>Reason:</b> Score ${score}/100 — trend, momentum, volume, RSI ek saath align nahi hue, isliye WAIT / NO TRADE.`;
+    } else {
+      planReason.innerHTML = `<b>Reason:</b> ${aligned.join(' + ') || 'Multiple factors'} aligned (score ${score}/100). Entry ke qareeb review karein, SL pehle lagayein, phir TP1/TP2. Price entry se bohat door nikal jaye to chase na karein.`;
+    }
+  }
+
+  // ---------- TradingView live chart ----------
+  let tvWidget = null;
+  function loadTVScriptThen(cb){
+    if(window.TradingView){ cb(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://s3.tradingview.com/tv.js';
+    s.onload = cb;
+    document.head.appendChild(s);
+  }
+  function renderTVChart(symbol){
+    loadTVScriptThen(()=>{
+      document.getElementById('tvChartContainer').innerHTML = '';
+      tvWidget = new TradingView.widget({
+        autosize: true,
+        symbol: 'BINANCE:'+symbol,
+        interval: TV_INTERVAL[intervalSelect.value] || '15',
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#121922',
+        enable_publishing: false,
+        allow_symbol_change: true,
+        hide_side_toolbar: false,
+        studies: ['STD;RSI', 'MASimple@tv-basicstudies'],
+        container_id: 'tvChartContainer'
+      });
+    });
+  }
+
+  // ---------- Trending coins scanner ----------
+  const trendGrid = $('trendGrid'), trendRefreshBtn = $('trendRefreshBtn');
+  async function loadTrendingCoins(){
+    trendGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Trending coins load ho rahe hain…</div>';
+    try{
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr', {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const all = await res.json();
+      const usdt = all.filter(t=>t.symbol.endsWith('USDT')
+        && !t.symbol.includes('UPUSDT') && !t.symbol.includes('DOWNUSDT')
+        && Number(t.quoteVolume) > 5000000); // liquid pairs only
+      usdt.sort((a,b)=> (Math.abs(Number(b.priceChangePercent))*Math.log10(Number(b.quoteVolume)+1))
+                        - (Math.abs(Number(a.priceChangePercent))*Math.log10(Number(a.quoteVolume)+1)));
+      const top = usdt.slice(0, 8);
+      if(top.length===0){
+        trendGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Abhi koi trending pair nahi mila.</div>';
+        return;
+      }
+      trendGrid.innerHTML = top.map(t=>{
+        const chg = Number(t.priceChangePercent);
+        const up = chg>=0;
+        const vol = Number(t.quoteVolume);
+        const volStr = vol>=1e9 ? (vol/1e9).toFixed(2)+'B' : (vol/1e6).toFixed(1)+'M';
+        return `<div class="trend-card" data-symbol="${t.symbol}">
+          <div class="t-sym">${t.symbol}</div>
+          <div class="t-chg ${up?'up':'down'}">${up?'+':''}${chg.toFixed(2)}%</div>
+          <div class="t-sub">Vol ${volStr} USDT</div>
+        </div>`;
+      }).join('');
+      trendGrid.querySelectorAll('.trend-card').forEach(card=>{
+        card.addEventListener('click', ()=>{
+          const sym = card.dataset.symbol;
+          if([...symbolSelect.options].some(o=>o.value===sym)){
+            symbolSelect.value = sym;
+          }
+          renderTVChart(sym);
+          setIdleCard();
+          window.scrollTo({top:0, behavior:'smooth'});
+        });
+      });
+    }catch(e){
+      trendGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Trending data unavailable — dobara try karein.</div>';
+    }
+  }
+
+  // ---------- localStorage helpers ----------
+  function loadJSON(key, fallback){
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+  }
+  function saveJSON(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  // ---------- Watchlist ----------
+  function getWatchlist(){ return loadJSON('tradeox_watchlist', []); }
+  function setWatchlist(list){ saveJSON('tradeox_watchlist', list); }
+
+  function renderWatchlist(){
+    const list = getWatchlist();
+    if(list.length===0){
+      watchBar.innerHTML = '<div class="empty-state" style="padding:8px 0;">Koi coin star nahi kiya abhi. Coin select karke ⭐ button dabayein.</div>';
+    } else {
+      watchBar.innerHTML = list.map(sym=>
+        `<div class="watch-chip ${sym===symbolSelect.value?'active':''}" data-symbol="${sym}"><span class="wc-sym">${sym}</span><span class="wc-star">✕</span></div>`
+      ).join('');
+      watchBar.querySelectorAll('.watch-chip').forEach(chip=>{
+        const sym = chip.dataset.symbol;
+        chip.querySelector('.wc-sym').addEventListener('click', ()=>{
+          if([...symbolSelect.options].some(o=>o.value===sym)) symbolSelect.value = sym;
+          setIdleCard();
+          renderTVChart(sym);
+          updateStarBtn();
+          renderWatchlist();
+          window.scrollTo({top:0, behavior:'smooth'});
+        });
+        chip.querySelector('.wc-star').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          setWatchlist(getWatchlist().filter(s=>s!==sym));
+          renderWatchlist();
+          updateStarBtn();
+        });
+      });
+    }
+    updateStarBtn();
+  }
+  function updateStarBtn(){
+    const isFav = getWatchlist().includes(symbolSelect.value);
+    starBtn.textContent = isFav ? '★' : '☆';
+    starBtn.classList.toggle('active', isFav);
+  }
+  starBtn.addEventListener('click', ()=>{
+    const sym = symbolSelect.value;
+    let list = getWatchlist();
+    if(list.includes(sym)) list = list.filter(s=>s!==sym);
+    else list.push(sym);
+    setWatchlist(list);
+    renderWatchlist();
+  });
+
+  // ---------- Auto-refresh ----------
+  autoRefreshToggle.addEventListener('change', ()=>{
+    if(autoRefreshToggle.checked){
+      autoRefreshTimer = setInterval(()=>{ analyze(); }, 60000);
+    } else if(autoRefreshTimer){
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+  });
+
+  // ---------- Price Alerts ----------
+  function getAlerts(){ return loadJSON('tradeox_alerts', []); }
+  function setAlerts(list){ saveJSON('tradeox_alerts', list); }
+
+  function populateAlertSymbolSelect(){
+    alertSymbol.innerHTML = [...symbolSelect.options].map(o=>`<option value="${o.value}">${o.textContent}</option>`).join('');
+    alertSymbol.value = symbolSelect.value;
+  }
+
+  function renderAlerts(){
+    const alerts = getAlerts();
+    if(alerts.length===0){
+      alertList.innerHTML = '<div class="empty-state" style="padding:8px 0;">Koi alert set nahi hai.</div>';
+      return;
+    }
+    alertList.innerHTML = alerts.map(a=>
+      `<div class="alert-item ${a.triggered?'triggered':''}" data-id="${a.id}">
+        <div class="a-info"><b>${a.symbol}</b> ${a.triggered?'✅ hit':'→'} ${fmtPrice(a.target)}</div>
+        <button class="a-del" data-id="${a.id}">✕</button>
+      </div>`
+    ).join('');
+    alertList.querySelectorAll('.a-del').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        setAlerts(getAlerts().filter(a=>a.id!==btn.dataset.id));
+        renderAlerts();
+      });
+    });
+  }
+
+  alertAddBtn.addEventListener('click', ()=>{
+    const symbol = alertSymbol.value;
+    const target = Number(alertPrice.value);
+    if(!symbol || !target || target<=0) return;
+    const alerts = getAlerts();
+    alerts.push({id: Date.now().toString(36), symbol, target, triggered:false});
+    setAlerts(alerts);
+    alertPrice.value = '';
+    renderAlerts();
+    if('Notification' in window && Notification.permission==='default'){
+      Notification.requestPermission();
+    }
+  });
+
+  async function pollAlerts(){
+    const alerts = getAlerts().filter(a=>!a.triggered);
+    if(alerts.length===0) return;
+    const symbols = [...new Set(alerts.map(a=>a.symbol))];
+    try{
+      const results = await Promise.all(symbols.map(s=>
+        fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${s}`, {cache:'no-store'}).then(r=>r.json())
+      ));
+      const priceMap = {};
+      results.forEach(r=>{ if(r && r.symbol) priceMap[r.symbol] = Number(r.price); });
+      let changed = false;
+      const all = getAlerts();
+      all.forEach(a=>{
+        if(a.triggered) return;
+        const p = priceMap[a.symbol];
+        if(p==null) return;
+        const hit = (p>=a.target); // treat as "price reached or crossed target" in either direction
+        const hitDown = (p<=a.target);
+        if(hit || hitDown){
+          // trigger the first time price is within .3% or crosses target
+          if(Math.abs(p-a.target)/a.target < 0.003){
+            a.triggered = true;
+            changed = true;
+            if('Notification' in window && Notification.permission==='granted'){
+              new Notification('Tradeox Price Alert', {body: `${a.symbol} target ${fmtPrice(a.target)} tak pohanch gaya! Current: ${fmtPrice(p)}`});
+            }
+          }
+        }
+      });
+      if(changed){ setAlerts(all); renderAlerts(); }
+    }catch(e){ /* silent fail, retry next poll */ }
+  }
+
+  // ---------- Signal History ----------
+  function getHistory(){ return loadJSON('tradeox_history', []); }
+  function pushHistory(entry){
+    const hist = getHistory();
+    hist.unshift(entry);
+    saveJSON('tradeox_history', hist.slice(0, 20));
+    renderHistory();
+  }
+  function renderHistory(){
+    const hist = getHistory();
+    if(hist.length===0){
+      historyList.innerHTML = '<div class="empty-state" style="padding:8px 0;">Abhi tak koi signal history nahi.</div>';
+      return;
+    }
+    historyList.innerHTML = hist.map(h=>{
+      const badge = h.decision==='LONG' ? '🟢' : h.decision==='SHORT' ? '🔴' : '🟡';
+      const time = new Date(h.t).toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+      return `<div class="history-item">
+        <div class="h-badge">${badge}</div>
+        <div class="h-sym">${h.symbol} <span style="color:var(--sub); font-weight:400;">${h.decision}</span></div>
+        <div class="h-price">${fmtPrice(h.price)}</div>
+        <div class="h-time">${time}</div>
+      </div>`;
+    }).join('');
+  }
+  historyClearBtn.addEventListener('click', ()=>{
+    saveJSON('tradeox_history', []);
+    renderHistory();
+  });
+
+  // ---------- Symbol validity check (detects delisted/suspended coins) ----------
+  let symbolStatus = {}; // { SYMBOL: 'TRADING' | 'HALT' | 'BREAK' | 'MISSING' }
+
+  async function checkSymbolValidity(){
+    const symbols = [...symbolSelect.options].map(o=>o.value);
+    try{
+      const url = `https://api.binance.com/api/v3/exchangeInfo?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
+      const res = await fetch(url, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      const found = {};
+      (data.symbols||[]).forEach(s=>{ found[s.symbol] = s.status; });
+      symbols.forEach(sym=>{ symbolStatus[sym] = found[sym] || 'MISSING'; });
+      applySymbolStatusToDropdown();
+    }catch(e){
+      // silent fail — if the check itself can't reach Binance, don't block the app;
+      // analyze() will surface the real connectivity error anyway.
+    }
+  }
+
+  function applySymbolStatusToDropdown(){
+    [...symbolSelect.options].forEach(opt=>{
+      const status = symbolStatus[opt.value];
+      const baseLabel = opt.textContent.replace(/ \(delisted\)| \(suspended\)/,'');
+      if(status && status !== 'TRADING'){
+        opt.disabled = true;
+        opt.textContent = baseLabel + (status==='MISSING' ? ' (delisted)' : ' (suspended)');
+      } else {
+        opt.disabled = false;
+        opt.textContent = baseLabel;
+      }
+    });
+    // if the currently selected coin turned invalid, warn and switch to the first valid one
+    const current = symbolSelect.value;
+    if(symbolStatus[current] && symbolStatus[current] !== 'TRADING'){
+      connStatus.textContent = `⚠️ ${current} ab Binance par trade nahi ho raha. Koi doosra coin select karein.`;
+      connDot.classList.add('off');
+    }
+  }
+
+  analyzeBtn.addEventListener('click', analyze);
+  symbolSelect.addEventListener('change', ()=>{ setIdleCard(); renderTVChart(symbolSelect.value); updateStarBtn(); renderWatchlist(); populateAlertSymbolSelect(); });
+  intervalSelect.addEventListener('change', ()=>{ setIdleCard(); renderTVChart(symbolSelect.value); });
+  capitalInput.addEventListener('input', updateRiskOutput);
+  riskInput.addEventListener('input', updateRiskOutput);
+  trendRefreshBtn.addEventListener('click', loadTrendingCoins);
+
+  renderTVChart(symbolSelect.value);
+  loadTrendingCoins();
+  renderWatchlist();
+  populateAlertSymbolSelect();
+  renderAlerts();
+  renderHistory();
+  checkSymbolValidity();
+  alertPollTimer = setInterval(pollAlerts, 30000);
+  setInterval(checkSymbolValidity, 6*60*60*1000); // recheck every 6 hours for new delistings
+})();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const OWNER_EMAIL = 'abdulhadi7888888@gmail.com';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBthlFURWDEpJQVa3KXS0pKmxgf2oxl6-c",
+    authDomain: "binance-trading-analytics.firebaseapp.com",
+    projectId: "binance-trading-analytics",
+    storageBucket: "binance-trading-analytics.firebasestorage.app",
+    messagingSenderId: "789683885174",
+    appId: "1:789683885174:web:4c2623e1253dd7887bbb57",
+    measurementId: "G-73BDNYBJRJ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  window.NG = { user:null, userDoc:null, isOwner:false, auth, db };
+
+  // ---------- DOM refs ----------
+  const authScreen = document.getElementById('authScreen');
+  const lockScreen = document.getElementById('lockScreen');
+  const homeScreen = document.getElementById('homeScreen');
+  const paywallScreen = document.getElementById('paywallScreen');
+  const adminPanel = document.getElementById('adminPanel');
+  const appContent = document.getElementById('appContent');
+
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+  const authSubmitBtn = document.getElementById('authSubmitBtn');
+  const authMsg = document.getElementById('authMsg');
+  const authToggleBtn = document.getElementById('authToggleBtn');
+  const authToggleText = document.getElementById('authToggleText');
+  const authForgotBtn = document.getElementById('authForgotBtn');
+  const authSub = document.getElementById('authSub');
+
+  const activationCodeInput = document.getElementById('activationCodeInput');
+  const activateCodeBtn = document.getElementById('activateCodeBtn');
+  const activateMsg = document.getElementById('activateMsg');
+  const paywallLogoutBtn = document.getElementById('paywallLogoutBtn');
+
+  const homeAdminApp = document.getElementById('homeAdminApp');
+  const adminBackBtn = document.getElementById('adminBackBtn');
+  const adminGenBtn = document.getElementById('adminGenBtn');
+  const adminCodeDuration = document.getElementById('adminCodeDuration');
+  const adminCodesList = document.getElementById('adminCodesList');
+  const adminUsersList = document.getElementById('adminUsersList');
+
+  let isSignupMode = false;
+
+  // ---------- Auth screen logic ----------
+  authToggleBtn.addEventListener('click', ()=>{
+    isSignupMode = !isSignupMode;
+    authSubmitBtn.textContent = isSignupMode ? 'Account Banayein' : 'Login';
+    authToggleText.textContent = isSignupMode ? 'Pehle se account hai?' : 'Account nahi hai?';
+    authToggleBtn.textContent = isSignupMode ? 'Login karein' : 'Sign up karein';
+    authMsg.textContent = '';
+  });
+
+  authSubmitBtn.addEventListener('click', async ()=>{
+    const email = authEmail.value.trim(), pass = authPassword.value;
+    if(!email || !pass){ authMsg.textContent = 'Email aur password dono zaroori hain'; authMsg.className='auth-msg err'; return; }
+    authMsg.className = 'auth-msg'; authMsg.textContent = 'Please wait…';
+    try{
+      if(isSignupMode) await auth.createUserWithEmailAndPassword(email, pass);
+      else await auth.signInWithEmailAndPassword(email, pass);
+    }catch(e){
+      authMsg.className = 'auth-msg err';
+      authMsg.textContent = friendlyAuthError(e);
+    }
+  });
+
+  googleLoginBtn.addEventListener('click', async ()=>{
+    authMsg.className = 'auth-msg'; authMsg.textContent = '';
+    try{
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await auth.signInWithPopup(provider);
+    }catch(e){
+      authMsg.className = 'auth-msg err';
+      authMsg.textContent = friendlyAuthError(e);
+    }
+  });
+
+  authForgotBtn.addEventListener('click', async ()=>{
+    const email = authEmail.value.trim();
+    if(!email){ authMsg.className='auth-msg err'; authMsg.textContent = 'Pehle apna email likhein, phir "Password bhool gaye" dabayein'; return; }
+    try{
+      await auth.sendPasswordResetEmail(email);
+      authMsg.className = 'auth-msg ok';
+      authMsg.textContent = 'Reset link aapke email par bhej di gayi hai';
+    }catch(e){
+      authMsg.className = 'auth-msg err';
+      authMsg.textContent = friendlyAuthError(e);
+    }
+  });
+
+  function friendlyAuthError(e){
+    const code = e.code || '';
+    if(code.includes('user-not-found')) return 'Account nahi mila, sign up karein';
+    if(code.includes('wrong-password')) return 'Password galat hai';
+    if(code.includes('email-already-in-use')) return 'Ye email pehle se registered hai, login karein';
+    if(code.includes('weak-password')) return 'Password kam az kam 6 characters ka ho';
+    if(code.includes('invalid-email')) return 'Email address sahi nahi hai';
+    if(code.includes('popup-closed-by-user')) return '';
+    return e.message || 'Kuch masla hua, dobara koshish karein';
+  }
+
+  // ---------- User doc / subscription helpers ----------
+  async function ensureUserDoc(user){
+    const ref = db.collection('users').doc(user.uid);
+    const snap = await ref.get();
+    if(!snap.exists){
+      const isOwner = user.email === OWNER_EMAIL;
+      const data = {
+        email: user.email, tryCount:0, activated:false, activatedAt:null, expiresAt:null,
+        usedCode:null, isOwner, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await ref.set(data);
+      return data;
+    }
+    return snap.data();
+  }
+
+  function hasActiveSubscription(doc){
+    if(!doc) return false;
+    if(doc.isOwner) return true;
+    if(doc.activated && doc.expiresAt){
+      const exp = doc.expiresAt.toDate ? doc.expiresAt.toDate() : new Date(doc.expiresAt);
+      return exp.getTime() > Date.now();
+    }
+    return false;
+  }
+
+  window.NG.checkAndConsumeTry = async function(){
+    if(!window.NG.userDoc) return false;
+    if(hasActiveSubscription(window.NG.userDoc)) return true;
+    const used = window.NG.userDoc.tryCount || 0;
+    if(used < 3){
+      window.NG.userDoc.tryCount = used + 1;
+      try{ await db.collection('users').doc(window.NG.user.uid).update({tryCount: window.NG.userDoc.tryCount}); }catch(e){}
+      return true;
+    }
+    return false;
+  };
+
+  window.NG.showPaywall = function(){ paywallScreen.classList.remove('hidden'); };
+  window.NG.hidePaywall = function(){ paywallScreen.classList.add('hidden'); };
+
+  // ---------- Activation code redemption ----------
+  activateCodeBtn.addEventListener('click', async ()=>{
+    const code = activationCodeInput.value.trim().toUpperCase();
+    if(!code){ activateMsg.className='auth-msg err'; activateMsg.textContent='Code likhein'; return; }
+    activateMsg.className = 'auth-msg'; activateMsg.textContent = 'Check ho raha hai…';
+    try{
+      const codeRef = db.collection('codes').doc(code);
+      await db.runTransaction(async (tx)=>{
+        const codeSnap = await tx.get(codeRef);
+        if(!codeSnap.exists) throw new Error('Ye code valid nahi hai');
+        const codeData = codeSnap.data();
+        if(codeData.used) throw new Error('Ye code pehle hi use ho chuka hai');
+        const duration = codeData.durationDays || 30;
+        const expiresAt = new Date(Date.now() + duration*24*60*60*1000);
+        tx.update(codeRef, {used:true, usedBy: window.NG.user.uid, usedByEmail: window.NG.user.email, usedAt: firebase.firestore.FieldValue.serverTimestamp()});
+        const userRef = db.collection('users').doc(window.NG.user.uid);
+        tx.update(userRef, {activated:true, activatedAt: firebase.firestore.FieldValue.serverTimestamp(), expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt), usedCode: code});
+      });
+      const freshUserSnap = await db.collection('users').doc(window.NG.user.uid).get();
+      window.NG.userDoc = freshUserSnap.data();
+      activateMsg.className = 'auth-msg ok';
+      activateMsg.textContent = 'Activate ho gaya! App khul rahi hai…';
+      setTimeout(()=>{
+        window.NG.hidePaywall();
+        activationCodeInput.value = '';
+        activateMsg.textContent = '';
+      }, 1200);
+    }catch(e){
+      activateMsg.className = 'auth-msg err';
+      activateMsg.textContent = e.message || 'Code check nahi ho saka';
+    }
+  });
+
+  paywallLogoutBtn.addEventListener('click', ()=> auth.signOut());
+
+  // ---------- Admin panel ----------
+  function genCodeString(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const seg = ()=> Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+    return `TRX-${seg()}-${seg()}`;
+  }
+
+  async function adminGenerateCode(){
+    const durationDays = Number(adminCodeDuration.value);
+    const code = genCodeString();
+    await db.collection('codes').doc(code).set({
+      used:false, usedBy:null, usedByEmail:null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), usedAt:null,
+      durationDays
+    });
+    await loadAdminCodes();
+  }
+  adminGenBtn.addEventListener('click', ()=>{
+    adminGenBtn.disabled = true;
+    adminGenerateCode().finally(()=> adminGenBtn.disabled = false);
+  });
+
+  async function loadAdminCodes(){
+    adminCodesList.innerHTML = '<div class="empty-state">Loading…</div>';
+    try{
+      const snap = await db.collection('codes').orderBy('createdAt','desc').limit(60).get();
+      if(snap.empty){ adminCodesList.innerHTML = '<div class="empty-state">Koi code nahi bana abhi.</div>'; return; }
+      adminCodesList.innerHTML = snap.docs.map(d=>{
+        const c = d.data();
+        return `<div class="admin-code-item ${c.used?'used':''}">
+          <div><div class="ac-code">${d.id}</div><div style="color:var(--sub); font-size:10.5px; margin-top:2px;">${c.durationDays||30} din${c.used?' · used by '+(c.usedByEmail||'—'):''}</div></div>
+          <span class="ac-tag ${c.used?'used':'free'}">${c.used?'USED':'UNUSED'}</span>
+        </div>`;
+      }).join('');
+    }catch(e){
+      adminCodesList.innerHTML = '<div class="empty-state">Codes load nahi ho sake.</div>';
+    }
+  }
+
+  async function loadAdminUsers(){
+    adminUsersList.innerHTML = '<div class="empty-state">Loading…</div>';
+    try{
+      const snap = await db.collection('users').orderBy('createdAt','desc').limit(200).get();
+      if(snap.empty){ adminUsersList.innerHTML = '<div class="empty-state">Koi user nahi mila.</div>'; return; }
+      adminUsersList.innerHTML = snap.docs.map(d=>{
+        const u = d.data();
+        let status='locked', label='Locked';
+        if(u.isOwner){ status='free'; label='Owner'; }
+        else if(hasActiveSubscription(u)){ status='active'; label='Active'; }
+        else { label = `${u.tryCount||0}/3 tries`; }
+        return `<div class="admin-user-item">
+          <span class="au-email">${u.email}</span>
+          <span class="au-status ${status}">${label}</span>
+        </div>`;
+      }).join('');
+    }catch(e){
+      adminUsersList.innerHTML = '<div class="empty-state">Users load nahi ho sake.</div>';
+    }
+  }
+
+  homeAdminApp.addEventListener('click', ()=>{
+    homeScreen.classList.add('hidden');
+    adminPanel.classList.add('show');
+    loadAdminCodes();
+    loadAdminUsers();
+  });
+  adminBackBtn.addEventListener('click', ()=>{
+    adminPanel.classList.remove('show');
+    homeScreen.classList.remove('hidden');
+  });
+
+  // ---------- Auth state ----------
+  // ---------- Install App (PWA) ----------
+  (function initInstallPanel(){
+    const installActionBtn = document.getElementById('installActionBtn');
+    const installSubtext = document.getElementById('installSubtext');
+    const installedBadge = document.getElementById('installedBadge');
+    const iosInstallModal = document.getElementById('iosInstallModal');
+    const iosInstallCloseBtn = document.getElementById('iosInstallCloseBtn');
+    const installCard = document.querySelector('.install-card');
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+    if(isStandalone){
+      installCard.classList.add('hidden');
+      installedBadge.classList.remove('hidden');
+      return;
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e)=>{
+      e.preventDefault();
+      deferredPrompt = e;
+      installActionBtn.textContent = 'Install';
+      installSubtext.textContent = 'Ek tap mein home screen par install ho jayega — Chrome / Android / Desktop';
+    });
+
+    if(isIOS){
+      installSubtext.textContent = 'Safari ke Share menu se "Add to Home Screen" karein';
+      installActionBtn.textContent = 'Kaise?';
+    }
+
+    installActionBtn.addEventListener('click', async ()=>{
+      if(isIOS){
+        iosInstallModal.classList.remove('hidden');
+        return;
+      }
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      } else {
+        installSubtext.textContent = 'App browser ke "Add to Home Screen" ya "Install App" menu se install karein (Chrome menu ⋮ → Install app)';
+      }
+    });
+
+    iosInstallCloseBtn.addEventListener('click', ()=> iosInstallModal.classList.add('hidden'));
+
+    window.addEventListener('appinstalled', ()=>{
+      installCard.classList.add('hidden');
+      installedBadge.classList.remove('hidden');
+    });
+  })();
+
+  auth.onAuthStateChanged(async (user)=>{
+    if(user){
+      window.NG.user = user;
+      authMsg.textContent = '';
+      authScreen.classList.add('hidden');
+      try{
+        window.NG.userDoc = await ensureUserDoc(user);
+        window.NG.isOwner = !!window.NG.userDoc.isOwner;
+        homeAdminApp.classList.toggle('hidden', !window.NG.isOwner);
+        if(!hasActiveSubscription(window.NG.userDoc) && (window.NG.userDoc.tryCount||0) >= 3){
+          // exhausted before even reaching lock — still let them unlock PIN, paywall triggers on ANALYZE
+        }
+        lockScreen.classList.remove('hidden');
+      }catch(e){
+        authMsg.className='auth-msg err';
+        authMsg.textContent = 'Login hua lekin data load nahi hua — internet check karein.';
+        authScreen.classList.remove('hidden');
+      }
+    } else {
+      window.NG.user = null; window.NG.userDoc = null; window.NG.isOwner = false;
+      authScreen.classList.remove('hidden');
+      lockScreen.classList.add('hidden');
+      homeScreen.classList.add('hidden');
+      appContent.classList.add('hidden');
+      paywallScreen.classList.add('hidden');
+      adminPanel.classList.remove('show');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
